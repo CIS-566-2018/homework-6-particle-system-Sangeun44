@@ -1,24 +1,15 @@
 
 # Project 6: Particle System
 
+**Goal:** to make physics-based procedural animation of particles and to practice using OpenGL's instanced rendering system.
+
+**Inspiration:** DMD and CGGT alumnus Nop Jiarathanakul's [Particle Dream application](http://www.iamnop.com/particles/).
+
 ## Particle collection (30 points)
-Created Class Particle.ts to store
-    curr_position
-    curr_velocity    
-    prev_position
-    prev_velocity
-    offset 
-    color, cosine color
-    acceleration
-    mass, which is constant
+Add whatever code you feel is necessary to your Typescript files to support a collection of particles that move over time and interact with various forces in the environment. Something like a `Particle` class could be helpful, but is not strictly necessary. At minimum, each particle should track position, velocity, and acceleration, and make use of an accurate time step value from within `main.ts`'s `tick()` function. You may use any integration method you see fit, such as Euler, Verlet, or Runge-Kutta.
 
-    for each particle
-    tried to make it contain arrays of particles and particles' data but it seemed better to hardcode it later in main.ts
-
-Particles update() function updates by the Verlet Integration
-
-Main.ts
-
+You'll probably want to test your code on a small set of particles at first, and with some simple directional forces just to make sure your particles move
+as expected.
 
 ## Procedural coloration and shaping of particles (15 points)
 Your particles' colors should be determined in some procedural manner, whether it's based on velocity, time, position, or distance to target point. Your particle coloration scheme should follow one of the color palette techniques discussed in Tuesday's class so that your particle collection seems coherently colored. The shape of your particles may be whatever you wish (you're not limited to the basic gradiated circle we provided in the base code). You can even use a texture on your particle surface if you wish. Feel free to set up another instanced data VBO to vary the shape of your particles within the same scene.

@@ -1,109 +1,93 @@
 import {vec3, vec4} from 'gl-matrix';
 import {gl} from './globals';
 
-export default class Particles {
+export default class Particle {
 
-    curr_positions : Array<vec3>;
-    curr_velocity : Array<vec3>;
+    curr_pos : vec3;
+    curr_vel : vec3;
 
-    prev_positions : Array<vec3>;
-    prev_velocity : Array<vec3>;
+    prev_pos : vec3;
+    prev_vel : vec3;
 
-    offset : Array<vec3>;
-    color : Array<vec4>;
+    offset : vec3;
+    color : vec4;
 
-    acceleration : Array<vec3>;
+    acceleration : vec3;
 
-    mass : Array<number>;
-    id : Array<number>;
+    mass : number;
 
-    numPar : number; 
+    constructor(curr_pos : vec3, curr_vel : vec3, offset : vec3, color: vec4, acceleration : vec3, mass : number) {
+        
+        this.curr_pos = curr_pos
+        this.curr_vel = curr_vel;
+        
+        this.offset = offset;
+        this.color = color;
+        this.acceleration = acceleration;
 
-    constructor(numPar : number) {
-        this.numPar = numPar;
+        this.mass = mass;
 
-        for(var i = 0; i < numPar; ++i) {
-            var rand1 = Math.random();
-            var rand2 = Math.random();
-
-            this.curr_positions.push(vec3.fromValues(rand2, rand2, rand2));
-            this.curr_velocity.push(vec3.fromValues(1,1,1)); 
-            
-            this.prev_positions.push(vec3.fromValues(rand1, rand1, rand1)); 
-            this.prev_velocity.push(vec3.fromValues(1,1,1)); 
-            
-            this.offset.push(vec3.fromValues(1,1,1));
-            this.color.push(vec4.fromValues(rand1/255, rand1/255, rand1/255, 1));
-            
-            this.acceleration.push(vec3.fromValues(1,1,1));
-            this.mass.push(2.0);
-            this.id.push(i);
-        } 
+        this.prev_pos = vec3.create();
+        this.prev_vel =vec3.create();
     }
 
     //update with Verlet
-    update(dt: number) {
-        for(var i = 0; i < this.numPar; ++i) {
-            var newPos = vec3.create();
-            var subPos = vec3.create();
-            var posTerm = vec3.create();
-            var accelTerm = vec3.create();
+    update(dT: number) {
+            var new_Pos = vec3.create();
+            var subtract_Pos = vec3.create();
+            var first_Term = vec3.create();
+            var second_Term = vec3.create();
 
-            //p - p* (current - prev)
-            vec3.subtract(subPos, this.curr_positions[i], this.prev_positions[i]);
-            //p + (p - p*)
-            vec3.add(posTerm, this.curr_positions[i], subPos);
-            //a * (dt^2)
-            var dt2 = dt * dt; 
-            vec3.scale(accelTerm, this.acceleration[i], dt2);
-            //p' = p + (p - p*) + a*(dt^2)
-            vec3.add(newPos, posTerm, accelTerm);
+            //(current - prev)
+            vec3.subtract(subtract_Pos, this.curr_pos, this.prev_pos);
+            //current + (current - prev)
+            vec3.add(first_Term, this.curr_pos, subtract_Pos);
+            //accel * (time^2)
+            var dT2 = dT * dT; 
+            vec3.scale(second_Term, this.acceleration, dT2);
+            //final position, adding 
+            vec3.add(new_Pos, first_Term, second_Term);
 
             //update prev and current positions
-            this.prev_positions[i] = this.curr_positions[i];
-            this.curr_positions[i] = newPos;
+            this.prev_pos = this.curr_pos;
+            this.curr_pos = new_Pos;
 
-            if(dt % 10) {
-                var dist = vec3.dist(this.curr_positions[i], vec3.fromValues(0,0,0));
-                var vec3color = this.colorGen(dist);
-                this.color[i] = vec4.fromValues(vec3color[0], vec3color[1], vec3color[2], 1.0);
-            }
-        }
+            var dist = vec3.dist(this.curr_pos, vec3.fromValues(0,100,0));
+            var colorVec = this.colorGen(dist);
+            this.color = vec4.fromValues(colorVec[0], colorVec[1], colorVec[2], 1.0);
     }
 
     colorGen(t : number) : vec3 {
+        //cosine curve
         var a = vec3.fromValues(0.658, 0.088, 0.138);
         var b = vec3.fromValues(3.138, 2.338, 1.558);
         var c = vec3.fromValues(1.778, 0.488, 0.666);
         var d = vec3.fromValues(0.00, 0.33, 0.67);
 
-        var scale = vec3.create();
-        var addCTD = vec3.create();
-        var scale2Pi = vec3.create();
+        var mult1 = vec3.create();
+        var add1 = vec3.create();
+        var mult2Pi = vec3.create();
 
-        vec3.scale(scale, c, t);
-        vec3.add(addCTD, scale, d);
-        vec3.scale(scale2Pi, addCTD, 2.0 * 3.1415);
+        vec3.scale(mult1, c, t);
+        vec3.add(add1, mult1, d);
+        vec3.scale(mult2Pi, add1, 2.0 * 3.1415);
 
-        var cosVec = vec3.fromValues(Math.cos(scale2Pi[0]), Math.cos(scale2Pi[1]), Math.cos(scale2Pi[2]));
+        var cosVec = vec3.fromValues(Math.cos(mult2Pi[0]), Math.cos(mult2Pi[1]), Math.cos(mult2Pi[2]));
         
         var bCos = vec3.create();
         vec3.mul(bCos, b, cosVec);
         
-        var toReturn = vec3.create();
-        vec3.add(toReturn, a, bCos);
+        var final = vec3.create();
+        vec3.add(final, a, bCos);
         
-        return toReturn;
+        return final;
     }
 
     // updates the acceleration
-   applyForce(f: vec3)
-   {
-       for(var i = 0; i < this.numPar; ++i) {
-            var newAcc = vec3.create();
-            vec3.scale(newAcc, f, 1 / this.mass[i]);
-            this.acceleration[i] = newAcc;
-       }
+   applyForce(force: vec3) {
+        var newAcceleration = vec3.create();
+        vec3.scale(newAcceleration, force, 1 / this.mass);
+        this.acceleration = newAcceleration;
    }
 }
 

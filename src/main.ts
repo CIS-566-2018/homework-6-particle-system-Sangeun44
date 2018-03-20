@@ -1,9 +1,10 @@
-import {vec3} from 'gl-matrix';
+import {vec3, vec4} from 'gl-matrix';
 import * as Stats from 'stats-js';
 import * as DAT from 'dat-gui';
 import Square from './geometry/Square';
 import OpenGLRenderer from './rendering/gl/OpenGLRenderer';
 import Camera from './Camera';
+import Particle from './particle';
 import {setGL} from './globals';
 import ShaderProgram, {Shader} from './rendering/gl/ShaderProgram';
 
@@ -16,31 +17,52 @@ const controls = {
 
 let square: Square;
 let time: number = 0.0;
+let numPar : number = 10.0;
+let particles: Array<Particle>;
 
 function loadScene() {
+  particles = new Array<Particle>();
   square = new Square();
   square.create();
+  SetUpScene();
+}
 
-  // Set up particles here. Hard-coded example data for now
+function SetUpScene() {
   let offsetsArray = [];
   let colorsArray = [];
-  let n: number = 100.0;
-  for(let i = 0; i < n; i++) {
-    for(let j = 0; j < n; j++) {
+  var id = 0;
+
+  // Set up particles here. Hard-coded example data for now
+  for(let i = 0; i < numPar; i++) {
+    for(let j = 0; j < numPar; j++) {
+      //the rows of particles 
+      var position = vec3.fromValues(i, j, 0);
+      var velocity = vec3.fromValues(0,0,0);
+      var acceleration = vec3.fromValues(0,0,0);
+      var offset = vec3.fromValues(i, j, 0);
+      var color = vec4.fromValues(255/255, 255/255, 255/255, 1.0); //white
+      var mass = 2.0; 
+
+      //add particle to array of particles
+      let particle = new Particle(position, velocity, offset, color, acceleration, mass);
+      particles.push(particle);
+
       offsetsArray.push(i);
       offsetsArray.push(j);
       offsetsArray.push(0);
 
-      colorsArray.push(i / n);
-      colorsArray.push(j / n);
+      colorsArray.push(i / numPar);
+      colorsArray.push(j / numPar);
       colorsArray.push(1.0);
       colorsArray.push(1.0); // Alpha channel
+
+      id++;
     }
   }
   let offsets: Float32Array = new Float32Array(offsetsArray);
   let colors: Float32Array = new Float32Array(colorsArray);
   square.setInstanceVBOs(offsets, colors);
-  square.setNumInstances(n * n); // 10x10 grid of "particles"
+  square.setNumInstances(numPar * numPar); // 10x10 grid of "particles"
 }
 
 function main() {
@@ -91,6 +113,13 @@ function main() {
       square,
     ]);
     stats.end();
+
+    time++;
+
+    for(var i = 0; i < 10; ++i) {
+      let particle : Particle = particles[i];
+      particle.update(time);
+    }
 
     // Tell the browser to call `tick` again whenever it renders a new frame
     requestAnimationFrame(tick);
