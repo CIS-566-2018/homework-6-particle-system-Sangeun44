@@ -7,6 +7,7 @@ import Camera from './Camera';
 import Particle from './particle';
 import {setGL} from './globals';
 import ShaderProgram, {Shader} from './rendering/gl/ShaderProgram';
+import { cursorTo } from 'readline';
 
 // Define an object with application parameters and button callbacks
 // This will be referred to by dat.GUI's functions that add GUI elements.
@@ -18,13 +19,14 @@ const controls = {
 let particles: Array<Particle>;
 let offsetsArray: Array<number>;
 let colorsArray: Array<number>;
+let camera: Camera;
 
 let offsets: Float32Array;
 let colors: Float32Array;
 
 let square: Square;
 let time: number = 0.0;
-let numPar : number = 20.0;
+let numPar : number = 30.0;
 let mass: number = 50.0; 
 
 function loadScene() {
@@ -62,13 +64,13 @@ function SetUpScene() {
       colorsArray.push(color[0]);
       colorsArray.push(color[1]);
       colorsArray.push(color[2]);
-      colorsArray.push(0.0); // Alpha channel
+      colorsArray.push(1.0); // Alpha channel
     }
   }
-  console.log(offsetsArray.length);
+  //console.log(offsetsArray.length);
 
   let offsets: Float32Array = new Float32Array(offsetsArray);
-  console.log(offsets.length);
+ // console.log(offsets.length);
   let colors: Float32Array = new Float32Array(colorsArray);
   square.setInstanceVBOs(offsets, colors);
   square.setNumInstances(numPar * numPar); // 10x10 grid of "particles"
@@ -100,7 +102,7 @@ function main() {
   //set up particles
   loadScene();
 
-  const camera = new Camera(vec3.fromValues(50, 50, 10), vec3.fromValues(50, 50, 0));
+  camera = new Camera(vec3.fromValues(50, 50, 10), vec3.fromValues(50, 50, 0));
 
   const renderer = new OpenGLRenderer(canvas);
   renderer.setClearColor(0.2, 0.2, 0.2, 1);
@@ -163,12 +165,48 @@ function main() {
     camera.updateProjectionMatrix();
   }, false);
 
+  window.addEventListener("mousedown", rayMouse, false);
+  window.addEventListener("mouseup", removeMouse, false);
+  
   renderer.setSize(window.innerWidth, window.innerHeight);
   camera.setAspectRatio(window.innerWidth / window.innerHeight);
   camera.updateProjectionMatrix();
 
-  // Start the render loop
+  //Start the render loop
   tick();
+}
+
+function rayMouse(event: MouseEvent) {
+  console.log(event.button);
+  
+  //mouse position
+  var mouseX = event.x;
+  var mouseY = event.y;
+
+  //user position
+  var viewerPos = vec3.fromValues(mouseX, mouseY, camera.position[2]);
+  console.log("camera" + viewerPos);
+
+  //ray position on 0,0,0 plane
+  var rayPos = vec3.fromValues(mouseX, mouseY, 0);
+  console.log("point" + rayPos);
+
+  //cast ray from this point to plane
+  var rayCast = vec3.create();
+  vec3.subtract(rayCast, viewerPos, rayPos);
+
+  //left mouse click
+  //attract
+  if(event.button === 0) {
+
+  } else {
+    
+  }
+
+}
+
+function removeMouse(event:MouseEvent) {
+
 }
 
 main();

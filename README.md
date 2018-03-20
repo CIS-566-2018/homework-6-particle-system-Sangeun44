@@ -27,7 +27,19 @@ Particles are constrained to a sphere for ease of viewing
 Colors of the particle depend on time and position from the center.
 
 ## Interactive forces (25 points)
-Allow the user to click on the scene to attract and repel particles from the cursor (consider ray-casting from the clicked point to place a 3D point in the scene from which particles can flee or move towards).
+Using camera z plane
+Using mouse x y 
+Ray-casting from camera plane to 0 plane
+
+If the user clicks left button,
+it will create an attractor on the 0- z-plane. 
+
+After getting the position of attraction, check if a particle is in range 5 of the point. if it is in range 5, it's direction will be made into the point, 
+it's range of motion will be restricted to 2 around the point
+
+If the user clicks right button,
+it will create an repeler on the 0-z-plane.
+
 
 You might also consider allowing the user the option of activating "force fields", i.e. invisible 3D noise functions that act as forces on the particles as they move through the scene. You might even consider implementing something like [curl noise](https://petewerner.blogspot.com/2015/02/intro-to-curl-noise.html) to move your particles. Creating a visualization of these fields by drawing small `GL_LINES` in the direction of the force every N units in the world may be helpful for determining if your code works as expected.
 

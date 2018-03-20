@@ -32,30 +32,6 @@ export default class Particle {
             var first_Term = vec3.create();
             var second_Term = vec3.create();
 
-            // var constraint1 = vec3.fromValues(50,50,50);
-            // var constraint2 = vec3.fromValues(0,0,0);
-
-            // var max = vec3.create();
-            // var min = vec3.create();
-            // var constraintPos = vec3.min(min, vec3.max(max, this.curr_pos, constraint2), constraint1);
-
-            // if(constraintPos[0] > bound ) {
-            //   constraintForce = vec3.fromValues(-1, 0, 0);
-            //   var vecAcc = vec3.create();
-            //   vec3.mul(vecAcc, constraintForce, this.acceleration);
-            //   this.applyForce(vecAcc);
-            // } if(constraintPos[1] > ) {
-            //   constraintForce = vec3.fromValues(0, -1, 0);
-            //   var vecAcc = vec3.create();
-            //   vec3.mul(vecAcc, constraintForce, this.acceleration);
-            //   this.applyForce(constraintForce);      
-            // } if(constraintPos[2] > 30) {
-            //   constraintForce = vec3.fromValues(0, 0, -1);
-            //   var vecAcc = vec3.create();
-            //   vec3.mul(vecAcc, constraintForce, this.acceleration);
-            //   this.applyForce(constraintForce);      
-            // }
-
             var bound = 50;
             //(current - prev)
             vec3.subtract(subtract_Pos, this.curr_pos, this.prev_pos);
@@ -77,7 +53,7 @@ export default class Particle {
                 vec3.add(dir, dir, vec3.fromValues(randDir1, randDir1, randDir1)); //add the randomizer
                 vec3.scale(dir, dir, -1); //negate the direction
                 this.applyForce(dir); //apply the directional force to the acceleration
-                console.log(dir);
+                //console.log(dir);
             }
             
             //accel * (time^2)
@@ -94,19 +70,23 @@ export default class Particle {
             var colorVec = this.colorGen(dist);
             this.color = vec4.fromValues(colorVec[0], colorVec[1], colorVec[2], 1.0);
             //further away from center, get darker
-            if(vec3.length(this.curr_pos) > 30) {
+            if(vec3.length(this.curr_pos) > 40) {
                 var adder = vec4.create();
-                adder = vec4.fromValues(0.6,0.6,0.6,0.6);
+                adder = vec4.fromValues(0.2,0.2,0.2,0.2);
                 vec4.subtract(this.color, this.color, adder);
+                this.color[0] = Math.min(Math.max(this.color[0], 0), 1);
+                this.color[1] = Math.min(Math.max(this.color[0], 0), 1);
+                this.color[2] = Math.min(Math.max(this.color[0], 0), 1);
+                //vec4.floor(this.color, vec4.fromValues(1,1,1,1));
             }
     }
 
     colorGen(t : number) : vec3 {
         //cosine curve
-        var a = vec3.fromValues(0.658, 0.088, 0.138);
-        var b = vec3.fromValues(3.138, 2.338, 1.558);
-        var c = vec3.fromValues(1.778, 0.488, 0.666);
-        var d = vec3.fromValues(0.00, 0.33, 0.67);
+        var a = vec3.fromValues(0.8, 0.5, 0.4);
+        var b = vec3.fromValues(0.2, 0.4, 0.2);
+        var c = vec3.fromValues(2.0, 1.0, 1.0);
+        var d = vec3.fromValues(0.00, 0.25, 0.25);
 
         var mult1 = vec3.create();
         var add1 = vec3.create();
@@ -133,6 +113,19 @@ export default class Particle {
         var updateAcc = vec3.create();
         vec3.scale(updateAcc, force, 1 / this.mass);
         this.acceleration = updateAcc;
+   }
+
+   attractForce(force: vec3, attractPos: vec3) {
+    //get distance of the particle from the attractive point
+    var distRay = vec3.create();
+    var partPos = this.curr_pos;
+    vec3.subtract(distRay, partPos, attractPos);    
+    var length = vec3.length(distRay); //dist in scalar 
+    
+    if(length > 5) {
+        
+    }
+
    }
 }
 
