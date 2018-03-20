@@ -5,26 +5,20 @@ export default class Particle {
 
     curr_pos : vec3;
     curr_vel : vec3;
-
     prev_pos : vec3;
     prev_vel : vec3;
 
     offset : vec3;
     color : vec4;
-
     acceleration : vec3;
-
     mass : number;
 
     constructor(curr_pos : vec3, curr_vel : vec3, offset : vec3, color: vec4, acceleration : vec3, mass : number) {
-        
         this.curr_pos = curr_pos
         this.curr_vel = curr_vel;
-        
         this.offset = offset;
         this.color = color;
         this.acceleration = acceleration;
-
         this.mass = mass;
 
         this.prev_pos = vec3.create();
@@ -38,10 +32,54 @@ export default class Particle {
             var first_Term = vec3.create();
             var second_Term = vec3.create();
 
+            // var constraint1 = vec3.fromValues(50,50,50);
+            // var constraint2 = vec3.fromValues(0,0,0);
+
+            // var max = vec3.create();
+            // var min = vec3.create();
+            // var constraintPos = vec3.min(min, vec3.max(max, this.curr_pos, constraint2), constraint1);
+
+            // if(constraintPos[0] > bound ) {
+            //   constraintForce = vec3.fromValues(-1, 0, 0);
+            //   var vecAcc = vec3.create();
+            //   vec3.mul(vecAcc, constraintForce, this.acceleration);
+            //   this.applyForce(vecAcc);
+            // } if(constraintPos[1] > ) {
+            //   constraintForce = vec3.fromValues(0, -1, 0);
+            //   var vecAcc = vec3.create();
+            //   vec3.mul(vecAcc, constraintForce, this.acceleration);
+            //   this.applyForce(constraintForce);      
+            // } if(constraintPos[2] > 30) {
+            //   constraintForce = vec3.fromValues(0, 0, -1);
+            //   var vecAcc = vec3.create();
+            //   vec3.mul(vecAcc, constraintForce, this.acceleration);
+            //   this.applyForce(constraintForce);      
+            // }
+
+            var bound = 50;
             //(current - prev)
             vec3.subtract(subtract_Pos, this.curr_pos, this.prev_pos);
             //current + (current - prev)
             vec3.add(first_Term, this.curr_pos, subtract_Pos);
+
+            //calculate acceleration depending on constraints
+            if(vec3.length(first_Term) > bound) {
+                //randomize the new direction (from -1 to 1)
+                var randDir1 = Math.random() * 2 - 1;
+                var randDir2 = Math.random() * 2 - 1;
+                var randDir3 = Math.random() * 2 - 1;
+
+                let dir = vec3.create();
+                vec3.subtract(dir, first_Term, this.curr_pos);
+                first_Term = this.curr_pos;
+                //get opposite direction
+                vec3.normalize(dir, dir); //normalize the direction
+                vec3.add(dir, dir, vec3.fromValues(randDir1, randDir1, randDir1)); //add the randomizer
+                vec3.scale(dir, dir, -1); //negate the direction
+                this.applyForce(dir); //apply the directional force to the acceleration
+                console.log(dir);
+            }
+            
             //accel * (time^2)
             var dT2 = dT * dT; 
             vec3.scale(second_Term, this.acceleration, dT2);
@@ -55,6 +93,12 @@ export default class Particle {
             var dist = vec3.dist(this.curr_pos, vec3.fromValues(0,100,0));
             var colorVec = this.colorGen(dist);
             this.color = vec4.fromValues(colorVec[0], colorVec[1], colorVec[2], 1.0);
+            //further away from center, get darker
+            if(vec3.length(this.curr_pos) > 30) {
+                var adder = vec4.create();
+                adder = vec4.fromValues(0.6,0.6,0.6,0.6);
+                vec4.subtract(this.color, this.color, adder);
+            }
     }
 
     colorGen(t : number) : vec3 {
@@ -84,10 +128,11 @@ export default class Particle {
     }
 
     // updates the acceleration
+    //for constraints and for mouse movement
    applyForce(force: vec3) {
-        var newAcceleration = vec3.create();
-        vec3.scale(newAcceleration, force, 1 / this.mass);
-        this.acceleration = newAcceleration;
+        var updateAcc = vec3.create();
+        vec3.scale(updateAcc, force, 1 / this.mass);
+        this.acceleration = updateAcc;
    }
 }
 

@@ -17,11 +17,14 @@ Created Class Particle.ts to store
 
 Particles update() function updates by the Verlet Integration
 
-Main.ts
+Main.ts creates particles and puts them into array
+updates everytime with update() to change offsetArray and ColorsArray for Square instance VBO
 
+Particles are constrained to a sphere for ease of viewing 
+-changing mass will make the particles faster
 
 ## Procedural coloration and shaping of particles (15 points)
-Your particles' colors should be determined in some procedural manner, whether it's based on velocity, time, position, or distance to target point. Your particle coloration scheme should follow one of the color palette techniques discussed in Tuesday's class so that your particle collection seems coherently colored. The shape of your particles may be whatever you wish (you're not limited to the basic gradiated circle we provided in the base code). You can even use a texture on your particle surface if you wish. Feel free to set up another instanced data VBO to vary the shape of your particles within the same scene.
+Colors of the particle depend on time and position from the center.
 
 ## Interactive forces (25 points)
 Allow the user to click on the scene to attract and repel particles from the cursor (consider ray-casting from the clicked point to place a 3D point in the scene from which particles can flee or move towards).

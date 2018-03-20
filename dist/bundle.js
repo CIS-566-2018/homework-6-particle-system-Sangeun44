@@ -3325,10 +3325,13 @@ const controls = {
     tesselations: 5,
     'Load Scene': loadScene,
 };
+let particles;
+let offsetsArray;
+let colorsArray;
 let square;
 let time = 0.0;
-let numPar = 100.0;
-let particles;
+let numPar = 10.0;
+let mass = 2.0;
 function loadScene() {
     particles = new Array();
     square = new __WEBPACK_IMPORTED_MODULE_3__geometry_Square__["a" /* default */]();
@@ -3338,28 +3341,24 @@ function loadScene() {
 function SetUpScene() {
     let offsetsArray = [];
     let colorsArray = [];
-    var id = 0;
     // Set up particles here. Hard-coded example data for now
-    for (let i = 0; i < this.numPar; i++) {
-        for (let j = 0; j < this.numPar; j++) {
-            //the rows of particles 
+    for (let i = 0; i < numPar; i++) {
+        for (let j = 0; j < numPar; j++) {
             var position = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].fromValues(i, j, 0);
             var velocity = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].fromValues(0, 0, 0);
             var acceleration = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].fromValues(0, 0, 0);
             var offset = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].fromValues(i, j, 0);
             var color = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec4 */].fromValues(255 / 255, 255 / 255, 255 / 255, 1.0); //white
-            var mass = 2.0;
-            //add particle to array of particles
             let particle = new __WEBPACK_IMPORTED_MODULE_6__particle__["a" /* default */](position, velocity, offset, color, acceleration, mass);
+            //add particle to array of particles
             particles.push(particle);
             offsetsArray.push(i);
             offsetsArray.push(j);
             offsetsArray.push(0);
-            colorsArray.push(i / this.numPar);
-            colorsArray.push(j / this.numPar);
-            colorsArray.push(1.0);
+            colorsArray.push(color[0]);
+            colorsArray.push(color[1]);
+            colorsArray.push(color[2]);
             colorsArray.push(1.0); // Alpha channel
-            id++;
         }
     }
     let offsets = new Float32Array(offsetsArray);
@@ -3387,32 +3386,48 @@ function main() {
     // Later, we can import `gl` from `globals.ts` to access it
     Object(__WEBPACK_IMPORTED_MODULE_7__globals__["b" /* setGL */])(gl);
     // Initial call to load scene
+    //set up particles
     loadScene();
     const camera = new __WEBPACK_IMPORTED_MODULE_5__Camera__["a" /* default */](__WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].fromValues(50, 50, 10), __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].fromValues(50, 50, 0));
     const renderer = new __WEBPACK_IMPORTED_MODULE_4__rendering_gl_OpenGLRenderer__["a" /* default */](canvas);
     renderer.setClearColor(0.2, 0.2, 0.2, 1);
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.ONE, gl.ONE); // Additive blending
-    const lambert = new __WEBPACK_IMPORTED_MODULE_8__rendering_gl_ShaderProgram__["b" /* default */]([
+    const particularShader = new __WEBPACK_IMPORTED_MODULE_8__rendering_gl_ShaderProgram__["b" /* default */]([
         new __WEBPACK_IMPORTED_MODULE_8__rendering_gl_ShaderProgram__["a" /* Shader */](gl.VERTEX_SHADER, __webpack_require__(68)),
         new __WEBPACK_IMPORTED_MODULE_8__rendering_gl_ShaderProgram__["a" /* Shader */](gl.FRAGMENT_SHADER, __webpack_require__(69)),
     ]);
     // This function will be called every frame
     function tick() {
+        //time update
+        var oldTime = time;
+        time++;
+        particularShader.setTime(time);
+        var dT = oldTime - time;
+        //update 
+        let offsets = new Float32Array(offsetsArray);
+        let colors = new Float32Array(colorsArray);
+        square.setInstanceVBOs(offsets, colors);
+        square.setNumInstances(numPar * numPar); // 10x10 grid of "particles"
+        //update particles
+        for (var i = 0; i < particles.length; ++i) {
+            let particle = particles[i];
+            particle.update(time);
+            offsetsArray[i] = particle.curr_pos[0];
+            offsetsArray[i + 1] = particle.curr_pos[1];
+            offsetsArray[i + 2] = particle.curr_pos[2];
+            colorsArray[i] = particle.color[0];
+            colorsArray[i + 1] = particle.color[1];
+            colorsArray[i + 2] = particle.color[2];
+            colorsArray[i + 3] = particle.color[3];
+        }
         camera.update();
         stats.begin();
-        lambert.setTime(time++);
+        particularShader.setTime(time++);
         gl.viewport(0, 0, window.innerWidth, window.innerHeight);
         renderer.clear();
-        renderer.render(camera, lambert, [
-            square,
-        ]);
+        renderer.render(camera, particularShader, [square]);
         stats.end();
-        time++;
-        for (var i = 0; i < particles.length; ++i) {
-            let n = particles[i];
-            n.update(time);
-        }
         // Tell the browser to call `tick` again whenever it renders a new frame
         requestAnimationFrame(tick);
     }
@@ -15375,7 +15390,7 @@ class ShaderProgram {
 /* 68 */
 /***/ (function(module, exports) {
 
-module.exports = "#version 300 es\n\nuniform mat4 u_ViewProj;\nuniform float u_Time;\n\nuniform mat3 u_CameraAxes; // Used for rendering particles as billboards (quads that are always looking at the camera)\n// gl_Position = center + vs_Pos.x * camRight + vs_Pos.y * camUp;\n\nin vec4 vs_Pos; // Non-instanced; each particle is the same quad drawn in a different place\nin vec4 vs_Col; // An instanced rendering attribute; each particle instance has a different color\nin vec3 vs_Translate; // Another instance rendering attribute used to position each quad instance in the scene\n\nout vec4 fs_Col;\nout vec4 fs_Pos;\n\nvoid main()\n{\n    fs_Col = vs_Col;\n    fs_Pos = vs_Pos;\n\n    vec3 offset = vs_Translate;\n    offset.z = (sin((u_Time + offset.x) * 3.14159 * 0.1) + cos((u_Time + offset.y) * 3.14159 * 0.1)) * 1.5;\n\n    vec3 billboardPos = offset + vs_Pos.x * u_CameraAxes[0] + vs_Pos.y * u_CameraAxes[1];\n\n    gl_Position = u_ViewProj * vec4(billboardPos, 1.0);\n}\n"
+module.exports = "#version 300 es\n\nuniform mat4 u_ViewProj;\nuniform float u_Time;\n\nuniform mat3 u_CameraAxes; // Used for rendering particles as billboards (quads that are always looking at the camera)\n// gl_Position = center + vs_Pos.x * camRight + vs_Pos.y * camUp;\n\nin vec4 vs_Pos; // Non-instanced; each particle is the same quad drawn in a different place\nin vec4 vs_Col; // An instanced rendering attribute; each particle instance has a different color\nin vec3 vs_Translate; // Another instance rendering attribute used to position each quad instance in the scene\n\nout vec4 fs_Col;\nout vec4 fs_Pos;\n\nvoid main()\n{\n    fs_Col = vs_Col;\n    fs_Pos = vs_Pos;\n\n    vec3 offset = vs_Translate;\n    //offset.z = (sin((u_Time + offset.x) * 3.14159 * 0.1) + cos((u_Time + offset.y) * 3.14159 * 0.1)) * 1.5;\n\n    vec3 billboardPos = offset + vs_Pos.x * u_CameraAxes[0] + vs_Pos.y * u_CameraAxes[1];\n\n    gl_Position = u_ViewProj * vec4(billboardPos, 1.0);\n}\n"
 
 /***/ }),
 /* 69 */

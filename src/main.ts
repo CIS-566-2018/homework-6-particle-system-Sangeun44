@@ -15,10 +15,17 @@ const controls = {
   'Load Scene': loadScene, // A function pointer, essentially
 };
 
+let particles: Array<Particle>;
+let offsetsArray: Array<number>;
+let colorsArray: Array<number>;
+
+let offsets: Float32Array;
+let colors: Float32Array;
+
 let square: Square;
 let time: number = 0.0;
-let numPar : number = 10.0;
-let particles: Array<Particle>;
+let numPar : number = 20.0;
+let mass: number = 50.0; 
 
 function loadScene() {
   particles = new Array<Particle>();
@@ -28,38 +35,40 @@ function loadScene() {
 }
 
 function SetUpScene() {
-  let offsetsArray = [];
-  let colorsArray = [];
-  var id = 0;
+  offsetsArray = [];
+  colorsArray = [];
 
   // Set up particles here. Hard-coded example data for now
   for(let i = 0; i < numPar; i++) {
     for(let j = 0; j < numPar; j++) {
-      //the rows of particles 
-      var position = vec3.fromValues(i, j, 0);
+      var rand1 = Math.random() * 5;
+      var rand2 = Math.random() * 10;
+      var rand3 = Math.random() * 5;
+
+      var position = vec3.fromValues(rand1, rand2, rand3);
       var velocity = vec3.fromValues(0,0,0);
       var acceleration = vec3.fromValues(0,0,0);
-      var offset = vec3.fromValues(i, j, 0);
+      var offset = vec3.fromValues(rand1, rand1, rand1);
       var color = vec4.fromValues(255/255, 255/255, 255/255, 1.0); //white
-      var mass = 2.0; 
+      let particle = new Particle(position, velocity, offset, color, acceleration, mass);
 
       //add particle to array of particles
-      let particle = new Particle(position, velocity, offset, color, acceleration, mass);
       particles.push(particle);
 
       offsetsArray.push(i);
       offsetsArray.push(j);
       offsetsArray.push(0);
 
-      colorsArray.push(i / numPar);
-      colorsArray.push(j / numPar);
-      colorsArray.push(1.0);
-      colorsArray.push(1.0); // Alpha channel
-
-      id++;
+      colorsArray.push(color[0]);
+      colorsArray.push(color[1]);
+      colorsArray.push(color[2]);
+      colorsArray.push(0.0); // Alpha channel
     }
   }
+  console.log(offsetsArray.length);
+
   let offsets: Float32Array = new Float32Array(offsetsArray);
+  console.log(offsets.length);
   let colors: Float32Array = new Float32Array(colorsArray);
   square.setInstanceVBOs(offsets, colors);
   square.setNumInstances(numPar * numPar); // 10x10 grid of "particles"
@@ -88,6 +97,7 @@ function main() {
   setGL(gl);
 
   // Initial call to load scene
+  //set up particles
   loadScene();
 
   const camera = new Camera(vec3.fromValues(50, 50, 10), vec3.fromValues(50, 50, 0));
@@ -97,7 +107,7 @@ function main() {
   gl.enable(gl.BLEND);
   gl.blendFunc(gl.ONE, gl.ONE); // Additive blending
 
-  const lambert = new ShaderProgram([
+  const particularShader = new ShaderProgram([
     new Shader(gl.VERTEX_SHADER, require('./shaders/particle-vert.glsl')),
     new Shader(gl.FRAGMENT_SHADER, require('./shaders/particle-frag.glsl')),
   ]);
@@ -105,21 +115,43 @@ function main() {
   // This function will be called every frame
   function tick() {
     camera.update();
-    stats.begin();
-    lambert.setTime(time++);
+    stats.begin(); //fps
     gl.viewport(0, 0, window.innerWidth, window.innerHeight);
     renderer.clear();
-    renderer.render(camera, lambert, [
-      square,
-    ]);
+    renderer.render(camera, particularShader, [square]);
     stats.end();
 
+    //time update
+    var oldTime = time;
     time++;
+    particularShader.setTime(time);
+    var dT = oldTime - time; 
 
-    for(var i = 0; i < 10; ++i) {
+    //update 
+    //console.log(offsetsArray.length); 
+
+    //update particles
+    for(var i = 1; i < particles.length; ++i) {
       let particle : Particle = particles[i];
-      particle.update(time);
+      particle.update(dT);
+      //console.log(particle.curr_pos);
+
+      offsetsArray[i * 3] = particle.curr_pos[0];
+      offsetsArray[i * 3 + 1] = particle.curr_pos[1];
+      offsetsArray[i * 3 + 2] = particle.curr_pos[2];
+   
+      colorsArray[i * 4] = particle.color[0];
+      colorsArray[i * 4 + 1] = particle.color[1];
+      colorsArray[i * 4 + 2] = particle.color[2];
+      colorsArray[i * 4 + 3] = particle.color[3];
+    
     }
+
+    //update Square 
+    offsets = new Float32Array(offsetsArray);
+    colors = new Float32Array(colorsArray);
+    square.setInstanceVBOs(offsets, colors);
+    square.setNumInstances(numPar * numPar);
 
     // Tell the browser to call `tick` again whenever it renders a new frame
     requestAnimationFrame(tick);
