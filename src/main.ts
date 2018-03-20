@@ -176,36 +176,39 @@ function main() {
   tick();
 }
 
-function rayMouse(event: MouseEvent) {
-  console.log(event.button);
-  
+function removeMouse(event: MouseEvent) {
+  for(var i = 0; i < particles.length; ++i) {
+    particles[i].removeForce();
+  }
+}
+
+function rayMouse(event: MouseEvent) {  
   //mouse position
   var mouseX = event.x;
   var mouseY = event.y;
 
   //user position
   var viewerPos = vec3.fromValues(mouseX, mouseY, camera.position[2]);
-  console.log("camera" + viewerPos);
 
   //ray position on 0,0,0 plane
   var rayPos = vec3.fromValues(mouseX, mouseY, 0);
-  console.log("point" + rayPos);
 
   //cast ray from this point to plane
-  var rayCast = vec3.create();
-  vec3.subtract(rayCast, viewerPos, rayPos);
+  // var rayCast = vec3.create();
+  // vec3.subtract(rayCast, viewerPos, rayPos);
+  console.log(rayPos);
 
   //left mouse click
   //attract
   if(event.button === 0) {
-
+    for(var i = 0; i < particles.length; ++i) {
+      particles[i].attractForce(rayPos);
+    }
   } else {
-    
+    for(var i = 0; i < particles.length; ++i) {
+      particles[i].repelForce(rayPos);
+    }
   }
-
-}
-
-function removeMouse(event:MouseEvent) {
 
 }
 
