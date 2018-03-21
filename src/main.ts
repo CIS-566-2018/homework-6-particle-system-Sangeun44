@@ -1,9 +1,14 @@
 import {vec3, vec4, mat3, mat4} from 'gl-matrix';
 import * as Stats from 'stats-js';
 import * as DAT from 'dat-gui';
-import Square from './geometry/Square';
+
 import OpenGLRenderer from './rendering/gl/OpenGLRenderer';
 import Camera from './Camera';
+
+import Mesh from 'geometry/Mesh';
+import Flower from './geometry/Mesh';
+import Square from './geometry/Square';
+
 import Particle from './particle';
 import {setGL} from './globals';
 import ShaderProgram, {Shader} from './rendering/gl/ShaderProgram';
@@ -13,6 +18,7 @@ import { cursorTo } from 'readline';
 // This will be referred to by dat.GUI's functions that add GUI elements.
 const controls = {
   tesselations: 5,
+  meshes: ['flower'],
   'Load Scene': loadScene, // A function pointer, essentially
 };
 
@@ -34,6 +40,16 @@ let mouseY : number;
 let point: vec3 = vec3.create();
 let repelled: boolean;
 let attracted: boolean;
+
+//mesh
+let mesh : Mesh;
+let flower : Flower;
+
+// Add controls to the gui
+const gui = new DAT.GUI();
+//gui.addColor(controls, 'color');
+gui.add(controls, 'meshes', ['flower', 'coral', 'tree', 'dragon', 'voltron']);
+gui.add(controls, 'Load Scene');
 
 function loadScene() {
   particles = new Array<Particle>();
@@ -108,7 +124,7 @@ function main() {
   //set up particles
   loadScene();
 
-  camera = new Camera(vec3.fromValues(0, 0, 300), vec3.fromValues(0, 0, 0));
+  camera = new Camera(vec3.fromValues(0, 0, 150), vec3.fromValues(0, 0, 0));
 
   const renderer = new OpenGLRenderer(canvas);
   renderer.setClearColor(0.1, 0.1, 0.2, 1);
@@ -146,7 +162,7 @@ function main() {
       //if force of attraction happens
       if(attracted === true) {
         var dist = vec3.distance(point, particle.curr_pos);
-        if(dist < 20) {
+        if(dist < 50) {
           console.log("attracted is true");
           let ray : vec3 = vec3.create();                    
           //get directional ray from current position 
@@ -154,8 +170,8 @@ function main() {
           vec3.scale(ray, ray, -1); //negate
           vec3.normalize(ray, ray);
           //particle.curr_vel = (ray);
-          vec3.scale(ray, ray, 1000);
-          vec3.scale(particle.curr_vel, particle.curr_vel, 0.6);
+          vec3.scale(ray, ray, 10);
+          vec3.scale(particle.curr_vel, particle.curr_vel, 0.2);
           particle.applyForce(ray);
         }
         //particle.curr_vel = vec3.fromValues(0.2,0.2,0);
@@ -227,7 +243,7 @@ function screenToWorld() : vec3 {
   var angle = Math.tan(camera.fovy / 2.0);
 
   var ref = vec3.create();
-  vec3.scale(ref, camera.forward, 300);
+  vec3.scale(ref, camera.forward, 150);
   vec3.add(ref, ref, camera.position);
   var lengthV = vec3.create();
   vec3.subtract(lengthV, ref, camera.position);

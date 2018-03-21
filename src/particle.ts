@@ -72,7 +72,7 @@ export default class Particle {
             var colorVec = this.colorGen(dist);
             this.color = vec4.fromValues(colorVec[0], colorVec[1], colorVec[2], 1.0);
             //further away from center, get darker
-            if(vec3.length(this.curr_pos) > 40) {
+            if(vec3.length(this.curr_pos) > 100) {
                 var adder = vec4.create();
                 adder = vec4.fromValues(0.2,0.2,0.2,0.2);
                 vec4.subtract(this.color, this.color, adder);

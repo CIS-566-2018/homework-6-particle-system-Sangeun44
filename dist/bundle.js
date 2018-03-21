@@ -3333,7 +3333,7 @@ let offsets;
 let colors;
 let square;
 let time = 0.0;
-let numPar = 70.0;
+let numPar = 100.0;
 let mass = 70.0;
 let mouseX;
 let mouseY;
@@ -3401,9 +3401,9 @@ function main() {
     // Initial call to load scene
     //set up particles
     loadScene();
-    camera = new __WEBPACK_IMPORTED_MODULE_5__Camera__["a" /* default */](__WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].fromValues(0, 0, 10), __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].fromValues(50, 50, 0));
+    camera = new __WEBPACK_IMPORTED_MODULE_5__Camera__["a" /* default */](__WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].fromValues(0, 0, 150), __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].fromValues(0, 0, 0));
     const renderer = new __WEBPACK_IMPORTED_MODULE_4__rendering_gl_OpenGLRenderer__["a" /* default */](canvas);
-    renderer.setClearColor(0.5, 0.2, 0.2, 1);
+    renderer.setClearColor(0.1, 0.1, 0.2, 1);
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.ONE, gl.ONE); // Additive blending
     const particularShader = new __WEBPACK_IMPORTED_MODULE_8__rendering_gl_ShaderProgram__["b" /* default */]([
@@ -3431,48 +3431,34 @@ function main() {
             //console.log(particle.curr_pos);
             //if force of attraction happens
             if (attracted === true) {
-                var ray = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].create();
-                __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].subtract(ray, ray, particle.curr_pos);
-                var length = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].length(ray);
-                if (length < 100) {
+                var dist = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].distance(point, particle.curr_pos);
+                if (dist < 50) {
                     console.log("attracted is true");
-                    let originVec = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].create();
-                    originVec = particle.curr_pos;
-                    //vec3.scale(point, point, 0.7);
-                    __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].subtract(originVec, originVec, point);
-                    __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].scale(originVec, originVec, -1);
-                    __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].normalize(originVec, originVec);
-                    __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].scale(originVec, originVec, 100);
-                    // console.log("attraction point" + point);
-                    // console.log("curr" + particle.curr_pos);
-                    // console.log("dir:" + originVec);
-                    // console.log("acc:" + particle.acceleration);
-                    //particle.acceleration = (originVec);
-                    particle.applyForce(originVec);
-                    // console.log("newAcc:" + particle.acceleration);
+                    let ray = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].create();
+                    //get directional ray from current position 
+                    __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].subtract(ray, particle.curr_pos, point);
+                    __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].scale(ray, ray, -1); //negate
+                    __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].normalize(ray, ray);
+                    //particle.curr_vel = (ray);
+                    __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].scale(ray, ray, 10);
+                    __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].scale(particle.curr_vel, particle.curr_vel, 0.2);
+                    particle.applyForce(ray);
                 }
                 //particle.curr_vel = vec3.fromValues(0.2,0.2,0);
             }
             //if repelling attraction happens
             if (repelled === true) {
-                var ray = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].create();
-                __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].subtract(ray, ray, particle.curr_pos);
-                var length = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].length(ray);
-                if (length < 80) {
-                    console.log("attracted is true");
-                    let originVec = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].create();
-                    originVec = particle.curr_pos;
-                    //vec3.scale(point, point, 0.7);
-                    __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].subtract(originVec, originVec, point);
-                    //vec3.scale(originVec, originVec, -1);
-                    __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].normalize(originVec, originVec);
-                    __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].scale(originVec, originVec, 100);
-                    // console.log("attraction point" + point);
-                    // console.log("curr" + particle.curr_pos);
-                    // console.log("dir:" + originVec);
-                    // console.log("acc:" + particle.acceleration);
-                    //particle.acceleration = (originVec);
-                    particle.applyForce(originVec);
+                var dist = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].distance(point, particle.curr_pos);
+                if (length < 20) {
+                    console.log("repel is true");
+                    let ray = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].create();
+                    __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].subtract(ray, particle.curr_pos, point);
+                    __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].scale(ray, ray, 1); //negate
+                    __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].normalize(ray, ray);
+                    //particle.curr_vel = (ray);
+                    __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].scale(ray, ray, 10);
+                    __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].scale(particle.curr_vel, particle.curr_vel, 2.2);
+                    particle.applyForce(ray);
                 }
                 // console.log("newAcc:" + particle.acceleration);
             }
@@ -3509,18 +3495,28 @@ function main() {
 }
 function screenToWorld() {
     //2d Viewport Coordinates
-    var x = (2 * mouseX) / window.innerWidth - 1;
-    var y = 1 - (2 * mouseY) / window.innerHeight;
+    var x = (mouseX / window.innerWidth) * 2 - 1;
+    var y = 1 - (mouseY / window.innerHeight) * 2;
     var z = 1;
-    // let xR = vec3.create();
-    // let yR = vec3.create();
-    // let clickPos = vec3.fromValues(x * camera.right[0] + y * camera.up[0],
-    //                                 x * camera.right[1] + y * camera.up[1],
-    //                                 x * camera.right[2] + y * camera.up[2]); 
-    // vec3.mul(xR, vec3.fromValues(x,x,x), camera.right);
-    // vec3.mul(yR, vec3.fromValues(y,y,y), camera.up);
-    // let clickPos = vec3.create();
-    //vec3.add(xR, yR, clickPos);
+    var angle = Math.tan(camera.fovy / 2.0);
+    var ref = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].create();
+    __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].scale(ref, camera.forward, 150);
+    __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].add(ref, ref, camera.position);
+    var lengthV = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].create();
+    __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].subtract(lengthV, ref, camera.position);
+    var length = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].length(lengthV);
+    var V = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].create();
+    __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].scale(V, camera.up, length * angle);
+    var H = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].create();
+    __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].scale(H, camera.right, length * angle * camera.aspectRatio);
+    var finalPos = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].create();
+    var sXH = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].create();
+    __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].scale(sXH, H, x);
+    var sYV = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].create();
+    __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].scale(sYV, V, y);
+    __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].add(finalPos, __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].add(finalPos, ref, sXH), sYV);
+    finalPos[2] = camera.target[2];
+    console.log(finalPos);
     //3d NDC
     var ray_ndc = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].fromValues(x, y, z);
     //4d homogeneous clip coord
@@ -3540,15 +3536,12 @@ function screenToWorld() {
     __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec4 */].transformMat4(ray_wor4, ray_eye, inverseView_Mat);
     var ray_wor3 = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].fromValues(ray_wor4[0], ray_wor4[1], ray_wor4[2]);
     __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].normalize(ray_wor3, ray_wor3);
-    var distRay = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].create();
-    __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].subtract(distRay, camera.target, camera.position);
-    var dist = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].length(distRay);
-    __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].scale(ray_wor3, ray_wor3, dist);
-    ray_wor3[2] = camera.target[2];
+    __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].scale(ray_wor3, ray_wor3, __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].length(camera.position));
+    //ray_wor3[2] = camera.target[2];
     //console.log(ray_wor3);
-    console.log(ray_wor3);
+    // console.log(ray_wor3);
     //vec3.scale(ray_wor3, ray_wor3, -1);
-    return ray_wor3;
+    return finalPos;
 }
 function removeMouse(event) {
     console.log("removed mouse");
@@ -3560,6 +3553,7 @@ function rayMouse(event) {
     mouseX = event.x;
     mouseY = event.y;
     point = screenToWorld();
+    //vec3.scale(point, point, );
     if (event.button === 0) {
         console.log("attract mouse");
         attracted = true;
@@ -12072,10 +12066,10 @@ class Square extends __WEBPACK_IMPORTED_MODULE_0__rendering_gl_Drawable__["a" /*
     create() {
         this.indices = new Uint32Array([0, 1, 2,
             0, 2, 3]);
-        this.positions = new Float32Array([-0.5, -0.5, 0, 1,
-            0.5, -0.5, 0, 1,
-            0.5, 0.5, 0, 1,
-            -0.5, 0.5, 0, 1]);
+        this.positions = new Float32Array([-0.8, -0.8, 0, 1,
+            0.8, -0.8, 0, 1,
+            0.8, 0.8, 0, 1,
+            -0.8, 0.8, 0, 1]);
         this.generateIdx();
         this.generatePos();
         this.generateCol();
@@ -12258,7 +12252,7 @@ class Camera {
         this.forward = __WEBPACK_IMPORTED_MODULE_1_gl_matrix__["c" /* vec3 */].create();
         const canvas = document.getElementById('canvas');
         this.controls = __WEBPACK_IMPORTED_MODULE_0_3d_view_controls__(canvas, {
-            position: position,
+            eye: position,
             center: target,
         });
         __WEBPACK_IMPORTED_MODULE_1_gl_matrix__["c" /* vec3 */].add(this.target, this.position, this.direction);
@@ -15370,7 +15364,7 @@ class Particle {
         var subtract_Pos = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].create();
         var first_Term = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].create();
         var second_Term = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].create();
-        var bound = 1000;
+        var bound = 200;
         //(current - prev)
         __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].subtract(subtract_Pos, this.curr_pos, this.prev_pos);
         //current + (current - prev)
@@ -15403,7 +15397,7 @@ class Particle {
         var colorVec = this.colorGen(dist);
         this.color = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec4 */].fromValues(colorVec[0], colorVec[1], colorVec[2], 1.0);
         //further away from center, get darker
-        if (__WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].length(this.curr_pos) > 40) {
+        if (__WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].length(this.curr_pos) > 100) {
             var adder = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec4 */].create();
             adder = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec4 */].fromValues(0.2, 0.2, 0.2, 0.2);
             __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec4 */].subtract(this.color, this.color, adder);

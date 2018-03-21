@@ -8,7 +8,7 @@ Created Class Particle.ts to store
     prev_position
     prev_velocity
     offset 
-    color, cosine color
+    color, is derived from cosine color - gets lighter as it is farther from origin
     acceleration
     mass, which is constant
 
@@ -32,25 +32,18 @@ Using mouse x y
 Ray-casting from camera plane to 0 plane
 
 If the user clicks left button,
-it will create an attractor on the 0- z-plane. 
+it will create an attractor on the 0 z-plane. 
 
-After getting the position of attraction from main.ts, check if a particle is in range 5 of the point. if it is in range 5, it's direction will be made into the point, 
-it's range of motion will be restricted to 2 around the point
+If the user clicks the right button,
+it will create a repeler on the 0 z-plane.
+
+After getting the position of attraction from main.ts, check if a particle is in range 20 of the point. if it is in range 20, it's acceleration will be away/from the click point.
+
 http://antongerdelan.net/opengl/raycasting.html - ray casting method source
 
-If the user clicks right button,
-it will create an repeller on the 0-z-plane.
-
 ## Mesh surface attraction (20 points)
-Give the user the option of selecting a mesh from a drop-down menu in your GUI and have a subset of your particles become attracted to points on the surface of the mesh. To start, try just having each vertex on the mesh attract one unique particle in your collection. For extra credit, try generating points on the surfaces of the mesh faces that will attract more particles. Consider this method of warping a 2D point with X, Y values in the range [0, 1) to the barycentric coordinates (u, v) of any arbitrary triangle:
-
-`(u, v) = (1 - sqrt(x), y * sqrt(x))`
-
-You can map these (u, v) coordinates to a point on any triangle using this method from `Physically Based Rendering From Theory to Implementation, Third Edition`'s chapter on triangle meshes:
-
-![](pbrt.jpg)
-
-Consider pre-generating these mesh attractor points at load time so your program runs in real time as you swap out meshes.
+Used Webgl obj loader
+After getting the vertex information, if the user selects a mesh, it will transform a subset of the particles into a mesh
 
 ## \~\*\~\*\~A E S T H E T I C\~\*\~\*\~ (10 points)
 As always, the artistic merit of your project plays a small role in your grade. The more interesting, varied, and procedural your project is, the higher your grade will be. Go crazy, make it vaporwave themed or something! Don't neglect the background of your scene; a static gray backdrop is pretty boring!
