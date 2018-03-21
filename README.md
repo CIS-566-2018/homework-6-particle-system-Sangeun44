@@ -43,7 +43,7 @@ http://antongerdelan.net/opengl/raycasting.html - ray casting method source
 
 ## Mesh surface attraction (20 points)
 Used Webgl obj loader
-After getting the vertex information, if the user selects a mesh, it will transform a subset of the particles into a mesh
+After getting the vertex information, if the user selects a mesh, it will transform a subset of the particles into a mesh.
 
 ## \~\*\~\*\~A E S T H E T I C\~\*\~\*\~ (10 points)
 As always, the artistic merit of your project plays a small role in your grade. The more interesting, varied, and procedural your project is, the higher your grade will be. Go crazy, make it vaporwave themed or something! Don't neglect the background of your scene; a static gray backdrop is pretty boring!

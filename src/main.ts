@@ -5,8 +5,8 @@ import * as DAT from 'dat-gui';
 import OpenGLRenderer from './rendering/gl/OpenGLRenderer';
 import Camera from './Camera';
 
-import Mesh from 'geometry/Mesh';
-import Flower from './geometry/Mesh';
+import Mesh from './geometry/Mesh';
+import Flower from './geometry/Flower';
 import Square from './geometry/Square';
 
 import Particle from './particle';
@@ -54,6 +54,9 @@ gui.add(controls, 'Load Scene');
 function loadScene() {
   particles = new Array<Particle>();
   square = new Square();
+  flower = new Flower();
+  mesh = new Mesh();
+
   square.create();
   SetUpScene();
 }
@@ -235,6 +238,14 @@ function main() {
   tick();
 }
 
+//check for mesh type
+function meshLoad() {
+  if(controls.meshes[0] === 'flower') {
+      mesh.addFlower(flower);
+  }
+}
+
+//calculate the point in screen from pixel
 function screenToWorld() : vec3 {
   //2d Viewport Coordinates
   var x = (mouseX / window.innerWidth) * 2 - 1;
@@ -324,7 +335,6 @@ function rayMouse(event: MouseEvent) {
 
       repelled = true;
   }
-
 }
 
 main();

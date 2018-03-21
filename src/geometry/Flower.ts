@@ -14,17 +14,16 @@ class Flower extends Drawable {
   mesh: any;
   objStr: string;
 
-  constructor(center: vec3) {
+  constructor() {
     super(); // Call the constructor of the super class. This is required.
-    this.center = vec4.fromValues(center[0], center[1], center[2], 1);
+    //this.center = vec4.fromValues(center[0], center[1], center[2], 1);
     this.indices = new Uint32Array([]);
     this.positions = new Float32Array([]);
     this.normals = new Float32Array([]);
 
      //obj loader
-    this.objStr = document.getElementById('why_cylinder.obj').innerHTML;
+    this.objStr = document.getElementById('why_flower.obj').innerHTML;
     this.mesh = new OBJ.Mesh(this.objStr); 
-
     this.addMeshData();
   }
 
@@ -61,9 +60,9 @@ class Flower extends Drawable {
     
     //normals
     for(var i = 0; i < this.mesh.vertexNormals.length; i = i + 3) {
-        objNorm.push(this.mesh.vertexNormals[i] );
+        objNorm.push(this.mesh.vertexNormals[i]);
         objNorm.push(this.mesh.vertexNormals[i+1]); 
-        objNorm.push(this.mesh.vertexNormals[i+2] );
+        objNorm.push(this.mesh.vertexNormals[i+2]);
         objNorm.push(0);
     }  
 
