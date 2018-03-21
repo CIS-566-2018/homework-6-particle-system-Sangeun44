@@ -31,7 +31,6 @@ class OpenGLRenderer {
                                camera.up[0], camera.up[1], camera.up[2],
                                camera.forward[0], camera.forward[1], camera.forward[2]);
 
-
     mat4.identity(model);
     mat4.multiply(viewProj, camera.projectionMatrix, camera.viewMatrix);
     prog.setModelMatrix(model);

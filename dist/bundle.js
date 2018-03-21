@@ -3328,10 +3328,18 @@ const controls = {
 let particles;
 let offsetsArray;
 let colorsArray;
+let camera;
+let offsets;
+let colors;
 let square;
 let time = 0.0;
-let numPar = 10.0;
-let mass = 2.0;
+let numPar = 70.0;
+let mass = 70.0;
+let mouseX;
+let mouseY;
+let point = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].create();
+let repelled;
+let attracted;
 function loadScene() {
     particles = new Array();
     square = new __WEBPACK_IMPORTED_MODULE_3__geometry_Square__["a" /* default */]();
@@ -3339,15 +3347,18 @@ function loadScene() {
     SetUpScene();
 }
 function SetUpScene() {
-    let offsetsArray = [];
-    let colorsArray = [];
+    offsetsArray = [];
+    colorsArray = [];
     // Set up particles here. Hard-coded example data for now
     for (let i = 0; i < numPar; i++) {
         for (let j = 0; j < numPar; j++) {
-            var position = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].fromValues(i, j, 0);
+            var rand1 = Math.random() * 40;
+            var rand2 = Math.random() * 40;
+            var rand3 = Math.random() * 40;
+            var position = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].fromValues(rand1, rand2, rand3);
             var velocity = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].fromValues(0, 0, 0);
             var acceleration = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].fromValues(0, 0, 0);
-            var offset = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].fromValues(i, j, 0);
+            var offset = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].fromValues(rand1, rand1, rand1);
             var color = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec4 */].fromValues(255 / 255, 255 / 255, 255 / 255, 1.0); //white
             let particle = new __WEBPACK_IMPORTED_MODULE_6__particle__["a" /* default */](position, velocity, offset, color, acceleration, mass);
             //add particle to array of particles
@@ -3361,7 +3372,9 @@ function SetUpScene() {
             colorsArray.push(1.0); // Alpha channel
         }
     }
+    //console.log(offsetsArray.length);
     let offsets = new Float32Array(offsetsArray);
+    // console.log(offsets.length);
     let colors = new Float32Array(colorsArray);
     square.setInstanceVBOs(offsets, colors);
     square.setNumInstances(numPar * numPar); // 10x10 grid of "particles"
@@ -3388,9 +3401,9 @@ function main() {
     // Initial call to load scene
     //set up particles
     loadScene();
-    const camera = new __WEBPACK_IMPORTED_MODULE_5__Camera__["a" /* default */](__WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].fromValues(50, 50, 10), __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].fromValues(50, 50, 0));
+    camera = new __WEBPACK_IMPORTED_MODULE_5__Camera__["a" /* default */](__WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].fromValues(0, 0, 10), __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].fromValues(50, 50, 0));
     const renderer = new __WEBPACK_IMPORTED_MODULE_4__rendering_gl_OpenGLRenderer__["a" /* default */](canvas);
-    renderer.setClearColor(0.2, 0.2, 0.2, 1);
+    renderer.setClearColor(0.5, 0.2, 0.2, 1);
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.ONE, gl.ONE); // Additive blending
     const particularShader = new __WEBPACK_IMPORTED_MODULE_8__rendering_gl_ShaderProgram__["b" /* default */]([
@@ -3399,35 +3412,85 @@ function main() {
     ]);
     // This function will be called every frame
     function tick() {
+        camera.update();
+        stats.begin(); //fps
+        gl.viewport(0, 0, window.innerWidth, window.innerHeight);
+        renderer.clear();
+        renderer.render(camera, particularShader, [square]);
+        stats.end();
         //time update
         var oldTime = time;
         time++;
         particularShader.setTime(time);
         var dT = oldTime - time;
         //update 
-        let offsets = new Float32Array(offsetsArray);
-        let colors = new Float32Array(colorsArray);
-        square.setInstanceVBOs(offsets, colors);
-        square.setNumInstances(numPar * numPar); // 10x10 grid of "particles"
+        //console.log(point); 
         //update particles
-        for (var i = 0; i < particles.length; ++i) {
+        for (var i = 1; i < particles.length; ++i) {
             let particle = particles[i];
-            particle.update(time);
-            offsetsArray[i] = particle.curr_pos[0];
-            offsetsArray[i + 1] = particle.curr_pos[1];
-            offsetsArray[i + 2] = particle.curr_pos[2];
-            colorsArray[i] = particle.color[0];
-            colorsArray[i + 1] = particle.color[1];
-            colorsArray[i + 2] = particle.color[2];
-            colorsArray[i + 3] = particle.color[3];
+            //console.log(particle.curr_pos);
+            //if force of attraction happens
+            if (attracted === true) {
+                var ray = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].create();
+                __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].subtract(ray, ray, particle.curr_pos);
+                var length = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].length(ray);
+                if (length < 100) {
+                    console.log("attracted is true");
+                    let originVec = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].create();
+                    originVec = particle.curr_pos;
+                    //vec3.scale(point, point, 0.7);
+                    __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].subtract(originVec, originVec, point);
+                    __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].scale(originVec, originVec, -1);
+                    __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].normalize(originVec, originVec);
+                    __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].scale(originVec, originVec, 100);
+                    // console.log("attraction point" + point);
+                    // console.log("curr" + particle.curr_pos);
+                    // console.log("dir:" + originVec);
+                    // console.log("acc:" + particle.acceleration);
+                    //particle.acceleration = (originVec);
+                    particle.applyForce(originVec);
+                    // console.log("newAcc:" + particle.acceleration);
+                }
+                //particle.curr_vel = vec3.fromValues(0.2,0.2,0);
+            }
+            //if repelling attraction happens
+            if (repelled === true) {
+                var ray = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].create();
+                __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].subtract(ray, ray, particle.curr_pos);
+                var length = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].length(ray);
+                if (length < 80) {
+                    console.log("attracted is true");
+                    let originVec = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].create();
+                    originVec = particle.curr_pos;
+                    //vec3.scale(point, point, 0.7);
+                    __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].subtract(originVec, originVec, point);
+                    //vec3.scale(originVec, originVec, -1);
+                    __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].normalize(originVec, originVec);
+                    __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].scale(originVec, originVec, 100);
+                    // console.log("attraction point" + point);
+                    // console.log("curr" + particle.curr_pos);
+                    // console.log("dir:" + originVec);
+                    // console.log("acc:" + particle.acceleration);
+                    //particle.acceleration = (originVec);
+                    particle.applyForce(originVec);
+                }
+                // console.log("newAcc:" + particle.acceleration);
+            }
+            //particle.curr_vel = vec3.fromValues(0.2,0.2,0);
+            particle.update(dT);
+            offsetsArray[i * 3] = particle.curr_pos[0];
+            offsetsArray[i * 3 + 1] = particle.curr_pos[1];
+            offsetsArray[i * 3 + 2] = particle.curr_pos[2];
+            colorsArray[i * 4] = particle.color[0];
+            colorsArray[i * 4 + 1] = particle.color[1];
+            colorsArray[i * 4 + 2] = particle.color[2];
+            colorsArray[i * 4 + 3] = particle.color[3];
         }
-        camera.update();
-        stats.begin();
-        particularShader.setTime(time++);
-        gl.viewport(0, 0, window.innerWidth, window.innerHeight);
-        renderer.clear();
-        renderer.render(camera, particularShader, [square]);
-        stats.end();
+        //update Square 
+        offsets = new Float32Array(offsetsArray);
+        colors = new Float32Array(colorsArray);
+        square.setInstanceVBOs(offsets, colors);
+        square.setNumInstances(numPar * numPar);
         // Tell the browser to call `tick` again whenever it renders a new frame
         requestAnimationFrame(tick);
     }
@@ -3436,11 +3499,75 @@ function main() {
         camera.setAspectRatio(window.innerWidth / window.innerHeight);
         camera.updateProjectionMatrix();
     }, false);
+    window.addEventListener("mousedown", rayMouse, false);
+    window.addEventListener("mouseup", removeMouse, false);
     renderer.setSize(window.innerWidth, window.innerHeight);
     camera.setAspectRatio(window.innerWidth / window.innerHeight);
     camera.updateProjectionMatrix();
-    // Start the render loop
+    //Start the render loop
     tick();
+}
+function screenToWorld() {
+    //2d Viewport Coordinates
+    var x = (2 * mouseX) / window.innerWidth - 1;
+    var y = 1 - (2 * mouseY) / window.innerHeight;
+    var z = 1;
+    // let xR = vec3.create();
+    // let yR = vec3.create();
+    // let clickPos = vec3.fromValues(x * camera.right[0] + y * camera.up[0],
+    //                                 x * camera.right[1] + y * camera.up[1],
+    //                                 x * camera.right[2] + y * camera.up[2]); 
+    // vec3.mul(xR, vec3.fromValues(x,x,x), camera.right);
+    // vec3.mul(yR, vec3.fromValues(y,y,y), camera.up);
+    // let clickPos = vec3.create();
+    //vec3.add(xR, yR, clickPos);
+    //3d NDC
+    var ray_ndc = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].fromValues(x, y, z);
+    //4d homogeneous clip coord
+    var ray_clip = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec4 */].fromValues(ray_ndc[0], ray_ndc[1], -1, 1);
+    //4d Eye Camera coord
+    var invProj_Mat = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["b" /* mat4 */].create();
+    __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["b" /* mat4 */].invert(invProj_Mat, camera.projectionMatrix);
+    __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec4 */].transformMat4(ray_clip, ray_clip, invProj_Mat);
+    var ray_eye = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec4 */].create();
+    ray_eye = ray_clip;
+    ray_eye = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec4 */].fromValues(ray_eye[0], ray_eye[1], -1, 1);
+    //4d world coordinates
+    //inverse view matrix
+    var inverseView_Mat = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["b" /* mat4 */].create();
+    __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["b" /* mat4 */].invert(inverseView_Mat, camera.viewMatrix);
+    var ray_wor4 = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec4 */].create();
+    __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec4 */].transformMat4(ray_wor4, ray_eye, inverseView_Mat);
+    var ray_wor3 = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].fromValues(ray_wor4[0], ray_wor4[1], ray_wor4[2]);
+    __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].normalize(ray_wor3, ray_wor3);
+    var distRay = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].create();
+    __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].subtract(distRay, camera.target, camera.position);
+    var dist = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].length(distRay);
+    __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].scale(ray_wor3, ray_wor3, dist);
+    ray_wor3[2] = camera.target[2];
+    //console.log(ray_wor3);
+    console.log(ray_wor3);
+    //vec3.scale(ray_wor3, ray_wor3, -1);
+    return ray_wor3;
+}
+function removeMouse(event) {
+    console.log("removed mouse");
+    repelled = false;
+    attracted = false;
+}
+function rayMouse(event) {
+    //mouse position
+    mouseX = event.x;
+    mouseY = event.y;
+    point = screenToWorld();
+    if (event.button === 0) {
+        console.log("attract mouse");
+        attracted = true;
+    }
+    else {
+        console.log("repel mouse");
+        repelled = true;
+    }
 }
 main();
 
@@ -11983,6 +12110,7 @@ class Square extends __WEBPACK_IMPORTED_MODULE_0__rendering_gl_Drawable__["a" /*
 class Drawable {
     constructor() {
         this.count = 0;
+        this.norGenerated = false;
         this.idxGenerated = false;
         this.posGenerated = false;
         this.colGenerated = false;
@@ -11990,6 +12118,7 @@ class Drawable {
         this.numInstances = 0; // How many instances of this Drawable the shader program should draw
     }
     destory() {
+        __WEBPACK_IMPORTED_MODULE_0__globals__["a" /* gl */].deleteBuffer(this.bufNor);
         __WEBPACK_IMPORTED_MODULE_0__globals__["a" /* gl */].deleteBuffer(this.bufIdx);
         __WEBPACK_IMPORTED_MODULE_0__globals__["a" /* gl */].deleteBuffer(this.bufPos);
         __WEBPACK_IMPORTED_MODULE_0__globals__["a" /* gl */].deleteBuffer(this.bufCol);
@@ -12003,6 +12132,10 @@ class Drawable {
         this.posGenerated = true;
         this.bufPos = __WEBPACK_IMPORTED_MODULE_0__globals__["a" /* gl */].createBuffer();
     }
+    generateNor() {
+        this.posGenerated = true;
+        this.bufPos = __WEBPACK_IMPORTED_MODULE_0__globals__["a" /* gl */].createBuffer();
+    }
     generateCol() {
         this.colGenerated = true;
         this.bufCol = __WEBPACK_IMPORTED_MODULE_0__globals__["a" /* gl */].createBuffer();
@@ -12012,6 +12145,12 @@ class Drawable {
         this.bufTranslate = __WEBPACK_IMPORTED_MODULE_0__globals__["a" /* gl */].createBuffer();
     }
     bindIdx() {
+        if (this.idxGenerated) {
+            __WEBPACK_IMPORTED_MODULE_0__globals__["a" /* gl */].bindBuffer(__WEBPACK_IMPORTED_MODULE_0__globals__["a" /* gl */].ELEMENT_ARRAY_BUFFER, this.bufIdx);
+        }
+        return this.idxGenerated;
+    }
+    bindNor() {
         if (this.idxGenerated) {
             __WEBPACK_IMPORTED_MODULE_0__globals__["a" /* gl */].bindBuffer(__WEBPACK_IMPORTED_MODULE_0__globals__["a" /* gl */].ELEMENT_ARRAY_BUFFER, this.bufIdx);
         }
@@ -15231,10 +15370,27 @@ class Particle {
         var subtract_Pos = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].create();
         var first_Term = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].create();
         var second_Term = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].create();
+        var bound = 1000;
         //(current - prev)
         __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].subtract(subtract_Pos, this.curr_pos, this.prev_pos);
         //current + (current - prev)
         __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].add(first_Term, this.curr_pos, subtract_Pos);
+        //calculate acceleration depending on constraints
+        if (__WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].length(first_Term) > bound) {
+            //randomize the new direction (from -1 to 1)
+            var randDir1 = Math.random() * 2 - 1;
+            var randDir2 = Math.random() * 2 - 1;
+            var randDir3 = Math.random() * 2 - 1;
+            let dir = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].create();
+            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].subtract(dir, first_Term, this.curr_pos);
+            first_Term = this.curr_pos;
+            //get opposite direction
+            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].normalize(dir, dir); //normalize the direction
+            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].add(dir, dir, __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].fromValues(randDir1, randDir1, randDir1)); //add the randomizer
+            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].scale(dir, dir, -1); //negate the direction
+            this.applyForce(dir); //apply the directional force to the acceleration
+            //console.log(dir);
+        }
         //accel * (time^2)
         var dT2 = dT * dT;
         __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].scale(second_Term, this.acceleration, dT2);
@@ -15246,13 +15402,23 @@ class Particle {
         var dist = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].dist(this.curr_pos, __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].fromValues(0, 100, 0));
         var colorVec = this.colorGen(dist);
         this.color = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec4 */].fromValues(colorVec[0], colorVec[1], colorVec[2], 1.0);
+        //further away from center, get darker
+        if (__WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].length(this.curr_pos) > 40) {
+            var adder = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec4 */].create();
+            adder = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec4 */].fromValues(0.2, 0.2, 0.2, 0.2);
+            __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["d" /* vec4 */].subtract(this.color, this.color, adder);
+            this.color[0] = Math.min(Math.max(this.color[0], 0), 1);
+            this.color[1] = Math.min(Math.max(this.color[0], 0), 1);
+            this.color[2] = Math.min(Math.max(this.color[0], 0), 1);
+            //vec4.floor(this.color, vec4.fromValues(1,1,1,1));
+        }
     }
     colorGen(t) {
         //cosine curve
-        var a = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].fromValues(0.658, 0.088, 0.138);
-        var b = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].fromValues(3.138, 2.338, 1.558);
-        var c = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].fromValues(1.778, 0.488, 0.666);
-        var d = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].fromValues(0.00, 0.33, 0.67);
+        var a = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].fromValues(0.8, 0.5, 0.4);
+        var b = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].fromValues(0.2, 0.4, 0.2);
+        var c = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].fromValues(2.0, 1.0, 1.0);
+        var d = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].fromValues(0.00, 0.25, 0.25);
         var mult1 = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].create();
         var add1 = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].create();
         var mult2Pi = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].create();
@@ -15267,10 +15433,11 @@ class Particle {
         return final;
     }
     // updates the acceleration
+    //for constraints and for mouse movement
     applyForce(force) {
-        var newAcceleration = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].create();
-        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].scale(newAcceleration, force, 1 / this.mass);
-        this.acceleration = newAcceleration;
+        var updateAcc = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].create();
+        __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].scale(updateAcc, force, 1 / this.mass);
+        this.acceleration = updateAcc;
     }
 }
 /* harmony export (immutable) */ __webpack_exports__["a"] = Particle;

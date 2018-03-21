@@ -1,4 +1,4 @@
-import {vec3, vec4} from 'gl-matrix';
+import {vec3, vec4, mat3, mat4} from 'gl-matrix';
 import * as Stats from 'stats-js';
 import * as DAT from 'dat-gui';
 import Square from './geometry/Square';
@@ -26,8 +26,14 @@ let colors: Float32Array;
 
 let square: Square;
 let time: number = 0.0;
-let numPar : number = 30.0;
-let mass: number = 50.0; 
+let numPar : number = 100.0;
+let mass: number = 70.0; 
+
+let mouseX : number;
+let mouseY : number;
+let point: vec3 = vec3.create();
+let repelled: boolean;
+let attracted: boolean;
 
 function loadScene() {
   particles = new Array<Particle>();
@@ -43,9 +49,9 @@ function SetUpScene() {
   // Set up particles here. Hard-coded example data for now
   for(let i = 0; i < numPar; i++) {
     for(let j = 0; j < numPar; j++) {
-      var rand1 = Math.random() * 5;
-      var rand2 = Math.random() * 10;
-      var rand3 = Math.random() * 5;
+      var rand1 = Math.random() * 40;
+      var rand2 = Math.random() * 40;
+      var rand3 = Math.random() * 40;
 
       var position = vec3.fromValues(rand1, rand2, rand3);
       var velocity = vec3.fromValues(0,0,0);
@@ -102,10 +108,10 @@ function main() {
   //set up particles
   loadScene();
 
-  camera = new Camera(vec3.fromValues(50, 50, 10), vec3.fromValues(50, 50, 0));
+  camera = new Camera(vec3.fromValues(0, 0, 300), vec3.fromValues(0, 0, 0));
 
   const renderer = new OpenGLRenderer(canvas);
-  renderer.setClearColor(0.2, 0.2, 0.2, 1);
+  renderer.setClearColor(0.1, 0.1, 0.2, 1);
   gl.enable(gl.BLEND);
   gl.blendFunc(gl.ONE, gl.ONE); // Additive blending
 
@@ -115,8 +121,9 @@ function main() {
   ]);
 
   // This function will be called every frame
-  function tick() {
+  function tick() {      
     camera.update();
+
     stats.begin(); //fps
     gl.viewport(0, 0, window.innerWidth, window.innerHeight);
     renderer.clear();
@@ -128,15 +135,52 @@ function main() {
     time++;
     particularShader.setTime(time);
     var dT = oldTime - time; 
-
     //update 
-    //console.log(offsetsArray.length); 
+    //console.log(point); 
 
     //update particles
     for(var i = 1; i < particles.length; ++i) {
       let particle : Particle = particles[i];
-      particle.update(dT);
       //console.log(particle.curr_pos);
+
+      //if force of attraction happens
+      if(attracted === true) {
+        var dist = vec3.distance(point, particle.curr_pos);
+        if(dist < 20) {
+          console.log("attracted is true");
+          let ray : vec3 = vec3.create();                    
+          //get directional ray from current position 
+          vec3.subtract(ray, particle.curr_pos, point);
+          vec3.scale(ray, ray, -1); //negate
+          vec3.normalize(ray, ray);
+          //particle.curr_vel = (ray);
+          vec3.scale(ray, ray, 1000);
+          vec3.scale(particle.curr_vel, particle.curr_vel, 0.6);
+          particle.applyForce(ray);
+        }
+        //particle.curr_vel = vec3.fromValues(0.2,0.2,0);
+      }
+
+      //if repelling attraction happens
+      if(repelled === true) {
+        var dist = vec3.distance(point, particle.curr_pos);
+        if(length < 20) {
+            console.log("repel is true");
+            let ray : vec3 = vec3.create();                    
+            vec3.subtract(ray, particle.curr_pos, point);
+            vec3.scale(ray, ray, 1); //negate
+            vec3.normalize(ray, ray);
+            //particle.curr_vel = (ray);
+            vec3.scale(ray, ray, 10);
+            vec3.scale(particle.curr_vel, particle.curr_vel, 2.2);
+            particle.applyForce(ray);
+          }
+        // console.log("newAcc:" + particle.acceleration);
+        }
+
+        //particle.curr_vel = vec3.fromValues(0.2,0.2,0);
+      
+      particle.update(dT);
 
       offsetsArray[i * 3] = particle.curr_pos[0];
       offsetsArray[i * 3 + 1] = particle.curr_pos[1];
@@ -146,7 +190,6 @@ function main() {
       colorsArray[i * 4 + 1] = particle.color[1];
       colorsArray[i * 4 + 2] = particle.color[2];
       colorsArray[i * 4 + 3] = particle.color[3];
-    
     }
 
     //update Square 
@@ -176,38 +219,94 @@ function main() {
   tick();
 }
 
+function screenToWorld() : vec3 {
+  //2d Viewport Coordinates
+  var x = (mouseX / window.innerWidth) * 2 - 1;
+  var y = 1 - (mouseY / window.innerHeight) * 2;
+  var z = 1;
+  var angle = Math.tan(camera.fovy / 2.0);
+
+  var ref = vec3.create();
+  vec3.scale(ref, camera.forward, 300);
+  vec3.add(ref, ref, camera.position);
+  var lengthV = vec3.create();
+  vec3.subtract(lengthV, ref, camera.position);
+  var length = vec3.length(lengthV);
+
+  var V = vec3.create();
+  vec3.scale(V, camera.up, length * angle);
+
+  var H = vec3.create();
+  vec3.scale(H, camera.right, length * angle * camera.aspectRatio);
+
+  var finalPos = vec3.create();
+  
+  var sXH = vec3.create();
+  vec3.scale(sXH, H, x);
+  
+  var sYV = vec3.create();
+  vec3.scale(sYV, V, y);
+
+  vec3.add(finalPos, vec3.add(finalPos, ref, sXH), sYV);
+  finalPos[2] = camera.target[2];
+  console.log(finalPos);
+
+  //3d NDC
+  var ray_ndc = vec3.fromValues(x, y, z);
+
+  //4d homogeneous clip coord
+  var ray_clip = vec4.fromValues(ray_ndc[0], ray_ndc[1], -1, 1);
+
+  //4d Eye Camera coord
+  var invProj_Mat = mat4.create();
+  mat4.invert(invProj_Mat, camera.projectionMatrix);
+  vec4.transformMat4(ray_clip, ray_clip, invProj_Mat);
+
+  var ray_eye = vec4.create();
+  ray_eye = ray_clip;
+
+  ray_eye = vec4.fromValues(ray_eye[0], ray_eye[1], -1, 1);
+
+  //4d world coordinates
+  //inverse view matrix
+  var inverseView_Mat = mat4.create();
+  mat4.invert(inverseView_Mat, camera.viewMatrix);
+
+  var ray_wor4 = vec4.create();
+  vec4.transformMat4(ray_wor4, ray_eye, inverseView_Mat);
+  var ray_wor3 = vec3.fromValues(ray_wor4[0], ray_wor4[1], ray_wor4[2]);
+  vec3.normalize(ray_wor3, ray_wor3);
+  vec3.scale(ray_wor3, ray_wor3, vec3.length(camera.position));
+
+  //ray_wor3[2] = camera.target[2];
+  //console.log(ray_wor3);
+ // console.log(ray_wor3);
+  //vec3.scale(ray_wor3, ray_wor3, -1);
+
+  return finalPos;
+
+}
+
 function removeMouse(event: MouseEvent) {
-  for(var i = 0; i < particles.length; ++i) {
-    particles[i].removeForce();
-  }
+  console.log("removed mouse");
+  repelled = false;
+  attracted = false;
 }
 
 function rayMouse(event: MouseEvent) {  
   //mouse position
-  var mouseX = event.x;
-  var mouseY = event.y;
-
-  //user position
-  var viewerPos = vec3.fromValues(mouseX, mouseY, camera.position[2]);
-
-  //ray position on 0,0,0 plane
-  var rayPos = vec3.fromValues(mouseX, mouseY, 0);
-
-  //cast ray from this point to plane
-  // var rayCast = vec3.create();
-  // vec3.subtract(rayCast, viewerPos, rayPos);
-  console.log(rayPos);
-
-  //left mouse click
-  //attract
+  mouseX = event.x;
+  mouseY = event.y;
+  point = screenToWorld();
+  //vec3.scale(point, point, );
+  
   if(event.button === 0) {
-    for(var i = 0; i < particles.length; ++i) {
-      particles[i].attractForce(rayPos);
-    }
+    console.log("attract mouse");
+     attracted = true;
   } else {
-    for(var i = 0; i < particles.length; ++i) {
-      particles[i].repelForce(rayPos);
-    }
+    console.log("repel mouse");
+
+      repelled = true;
   }
 
 }

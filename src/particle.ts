@@ -12,9 +12,6 @@ export default class Particle {
     color : vec4;
     acceleration : vec3;
     mass : number;
-
-    attracted : boolean;
-    repelled : boolean;
     
     click: vec3;
 
@@ -25,8 +22,6 @@ export default class Particle {
         this.color = color;
         this.acceleration = acceleration;
         this.mass = mass;
-        this.attracted = false;
-        this.repelled = false;
 
         this.prev_pos = vec3.create();
         this.prev_vel =vec3.create();
@@ -39,7 +34,7 @@ export default class Particle {
             var first_Term = vec3.create();
             var second_Term = vec3.create();
 
-            var bound = 50;
+            var bound = 200;
             //(current - prev)
             vec3.subtract(subtract_Pos, this.curr_pos, this.prev_pos);
             //current + (current - prev)
@@ -62,35 +57,6 @@ export default class Particle {
                 this.applyForce(dir); //apply the directional force to the acceleration
                 //console.log(dir);
             }
-            
-            if(this.repelled === true) {
-                console.log("true repel");
-
-                //ray from particle to position
-                var ray = vec3.create();
-                vec3.subtract(ray, this.click, first_Term);
-                first_Term = this.curr_pos;
-
-                //get opposite direction
-                vec3.normalize(ray, ray); //normalize the direction
-                vec3.scale(ray,ray, -1); //negate the direction
-                this.applyForce(ray); //apply the directional force to the acceleration
-                //console.log(dir);
-
-            }
-            // if(this.repelled === false) {
-            //     this.curr_vel = vec3.mul(this.curr_vel, vec3.fromValues(0,0,0), this.curr_vel);
-            //     this.acceleration = vec3.fromValues(0,0,0);
-            // }
-
-            if(this.attracted === true) {
-                this.curr_vel = vec3.mul(this.curr_vel, vec3.fromValues(0,0,0), this.curr_vel);
-                this.acceleration = vec3.fromValues(1,1,1);
-            }
-            // if(this.attracted === false) {
-            //     this.curr_vel = vec3.add(this.curr_vel, vec3.fromValues(0,0,0), this.curr_vel);
-            //     this.acceleration = vec3.fromValues(0,0,0);
-            // }
 
             //accel * (time^2)
             var dT2 = dT * dT; 
@@ -149,37 +115,6 @@ export default class Particle {
         var updateAcc = vec3.create();
         vec3.scale(updateAcc, force, 1 / this.mass);
         this.acceleration = updateAcc;
-   }
-
-   attractForce(attractPos: vec3) {
-    //get distance of the particle from the attractive point
-    var distRay = vec3.create();
-    var partPos = this.curr_pos;
-    vec3.subtract(distRay, partPos, attractPos);    
-    var length = vec3.length(distRay); //dist in scalar 
-    
-    if(length > 5) {
-        this.attracted = true;
-    }
-    this.click = attractPos;
-   }
-   
-   repelForce(repelForce: vec3) {
-    //get distance of the particle from the repelling point
-    var distRay = vec3.create();
-    var partPos = this.curr_pos;
-    vec3.subtract(distRay, partPos, repelForce);    
-    var length = vec3.length(distRay); //dist in scalar 
-    
-    if(length > 5) {
-        this.repelled = true;
-    }
-    this.click = repelForce;
-   }
-
-   removeForce() {
-       this.repelled = false;
-       this.attracted = false;
    }
 }
 

@@ -34,14 +34,12 @@ Ray-casting from camera plane to 0 plane
 If the user clicks left button,
 it will create an attractor on the 0- z-plane. 
 
-After getting the position of attraction, check if a particle is in range 5 of the point. if it is in range 5, it's direction will be made into the point, 
+After getting the position of attraction from main.ts, check if a particle is in range 5 of the point. if it is in range 5, it's direction will be made into the point, 
 it's range of motion will be restricted to 2 around the point
+http://antongerdelan.net/opengl/raycasting.html - ray casting method source
 
 If the user clicks right button,
-it will create an repeler on the 0-z-plane.
-
-
-You might also consider allowing the user the option of activating "force fields", i.e. invisible 3D noise functions that act as forces on the particles as they move through the scene. You might even consider implementing something like [curl noise](https://petewerner.blogspot.com/2015/02/intro-to-curl-noise.html) to move your particles. Creating a visualization of these fields by drawing small `GL_LINES` in the direction of the force every N units in the world may be helpful for determining if your code works as expected.
+it will create an repeller on the 0-z-plane.
 
 ## Mesh surface attraction (20 points)
 Give the user the option of selecting a mesh from a drop-down menu in your GUI and have a subset of your particles become attracted to points on the surface of the mesh. To start, try just having each vertex on the mesh attract one unique particle in your collection. For extra credit, try generating points on the surfaces of the mesh faces that will attract more particles. Consider this method of warping a 2D point with X, Y values in the range [0, 1) to the barycentric coordinates (u, v) of any arbitrary triangle:
