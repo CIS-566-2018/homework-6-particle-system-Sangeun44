@@ -18,7 +18,7 @@ import { cursorTo } from 'readline';
 // This will be referred to by dat.GUI's functions that add GUI elements.
 const controls = {
   tesselations: 5,
-  meshes: ['flower'],
+  meshes: 'flower',
   'Load Scene': loadScene, // A function pointer, essentially
 };
 
@@ -44,18 +44,19 @@ let attracted: boolean;
 //mesh
 let mesh : Mesh;
 let flower : Flower;
+let vertices : Array<vec3>;
 
 // Add controls to the gui
 const gui = new DAT.GUI();
 //gui.addColor(controls, 'color');
-gui.add(controls, 'meshes', ['flower', 'coral', 'tree', 'dragon', 'voltron']);
+gui.add(controls, 'meshes', ['flower', ' coral', 'tree', 'dragon', 'voltron']);
 gui.add(controls, 'Load Scene');
 
 function loadScene() {
   particles = new Array<Particle>();
   square = new Square();
-  flower = new Flower();
-  mesh = new Mesh();
+  mesh = new Mesh(vec3.fromValues(0,0,0));
+  flower = new Flower(vec3.fromValues(0,0,0));
 
   square.create();
   SetUpScene();
@@ -183,7 +184,7 @@ function main() {
       //if repelling attraction happens
       if(repelled === true) {
         var dist = vec3.distance(point, particle.curr_pos);
-        if(length < 20) {
+        if(length < 50) {
             console.log("repel is true");
             let ray : vec3 = vec3.create();                    
             vec3.subtract(ray, particle.curr_pos, point);
@@ -236,13 +237,32 @@ function main() {
 
   //Start the render loop
   tick();
+  meshLoad();
 }
 
 //check for mesh type
 function meshLoad() {
-  if(controls.meshes[0] === 'flower') {
+  if(controls.meshes === 'flower') {
       mesh.addFlower(flower);
+      let sep_Verts : Float32Array = mesh.positions;
+      for(var i = 0; i < sep_Verts.length; i = i + 3) {
+        var vector_Pos = vec3.create();
+        vector_Pos[0] = sep_Verts[i];
+        vector_Pos[1] = sep_Verts[i+1];
+        vector_Pos[2] = sep_Verts[i+2]
+        vertices.push(vector_Pos);
+        console.log(vertices.length);
+      }
   }
+// else if(controls.meshes === 'flower') {
+//      mesh.addFlower(flower);
+// }
+//   else if(controls.meshes[0] === 'flower') {
+//   mesh.addFlower(flower);
+// }
+//   else if(controls.meshes[0] === 'flower') {
+//   mesh.addFlower(flower);
+//   }
 }
 
 //calculate the point in screen from pixel
@@ -250,6 +270,9 @@ function screenToWorld() : vec3 {
   //2d Viewport Coordinates
   var x = (mouseX / window.innerWidth) * 2 - 1;
   var y = 1 - (mouseY / window.innerHeight) * 2;
+  x /= window.innerHeight;
+  y /= window.innerHeight;
+
   var z = 1;
   var angle = Math.tan(camera.fovy / 2.0);
 

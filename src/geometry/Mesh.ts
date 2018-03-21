@@ -13,9 +13,9 @@ class Mesh extends Drawable {
     pos : Array<number>;
     norm : Array<number>;
   
-  constructor() {
+  constructor(center : vec3) {
     super(); // Call the constructor of the super class. This is required.
-    //this.center = vec4.fromValues(center[0], center[1], center[2], 1);
+    this.center = vec4.fromValues(center[0], center[1], center[2], 1);
     this.indices = new Uint32Array([]);
     this.positions = new Float32Array([]);
     this.normals = new Float32Array([]);

@@ -14,9 +14,9 @@ class Flower extends Drawable {
   mesh: any;
   objStr: string;
 
-  constructor() {
+  constructor(center: vec3) {
     super(); // Call the constructor of the super class. This is required.
-    //this.center = vec4.fromValues(center[0], center[1], center[2], 1);
+    this.center = vec4.fromValues(center[0], center[1], center[2], 1);
     this.indices = new Uint32Array([]);
     this.positions = new Float32Array([]);
     this.normals = new Float32Array([]);
@@ -24,6 +24,7 @@ class Flower extends Drawable {
      //obj loader
     this.objStr = document.getElementById('why_flower.obj').innerHTML;
     this.mesh = new OBJ.Mesh(this.objStr); 
+
     this.addMeshData();
   }
 
@@ -60,17 +61,17 @@ class Flower extends Drawable {
     
     //normals
     for(var i = 0; i < this.mesh.vertexNormals.length; i = i + 3) {
-        objNorm.push(this.mesh.vertexNormals[i]);
+        objNorm.push(this.mesh.vertexNormals[i] );
         objNorm.push(this.mesh.vertexNormals[i+1]); 
-        objNorm.push(this.mesh.vertexNormals[i+2]);
+        objNorm.push(this.mesh.vertexNormals[i+2] );
         objNorm.push(0);
     }  
 
     //vertex positions
     for(var i = 0; i < this.mesh.vertices.length; i = i + 3) {
-        objPos.push(this.mesh.vertices[i] + this.center[0]);
-        objPos.push(this.mesh.vertices[i+1] + this.center[1]);
-        objPos.push(this.mesh.vertices[i+2] + this.center [2]);
+        objPos.push(this.mesh.vertices[i]);
+        objPos.push(this.mesh.vertices[i+1]);
+        objPos.push(this.mesh.vertices[i+2]);
         objPos.push(1);
     }  
 
