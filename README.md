@@ -45,6 +45,8 @@ After getting the position of attraction from main.ts, check if a particle is in
 
 Really SLOW
 
+you can repel/attract the particles of the mesh a bit but it comes back
+
 http://antongerdelan.net/opengl/raycasting.html - ray casting method source
 ![](sc.png)
 ![](flower.png)
