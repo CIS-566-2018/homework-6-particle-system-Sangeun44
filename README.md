@@ -35,9 +35,11 @@ Ray-casting from camera plane to 0 plane
 
 If the user clicks left button,
 it will create an attractor on the 0 z-plane. 
+when you attract it will 
 
 If the user clicks the right button,
 it will create a repeler on the 0 z-plane.
+when you repel, it will repel everything away
 
 After getting the position of attraction from main.ts, check if a particle is in range 20 of the point. if it is in range 20, it's acceleration will be away/from the click point.
 
