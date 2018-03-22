@@ -44,7 +44,7 @@ After getting the position of attraction from main.ts, check if a particle is in
 Really SLOW
 
 http://antongerdelan.net/opengl/raycasting.html - ray casting method source
-
+![](sc.png)
 ## Mesh surface attraction (20 points)
 Used Webgl obj loader
 After getting the vertex information, if the user selects a mesh, it will transform a subset of the particles into a mesh. The rest pf the particles are normal.
