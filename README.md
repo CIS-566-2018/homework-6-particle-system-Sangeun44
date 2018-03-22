@@ -48,6 +48,7 @@ http://antongerdelan.net/opengl/raycasting.html - ray casting method source
 ## Mesh surface attraction (20 points)
 Used Webgl obj loader
 After getting the vertex information, if the user selects a mesh, it will transform a subset of the particles into a mesh. The rest pf the particles are normal.
+The mesh has attractors at each vertex
 
 ## Extra credit (50 points max)
 * (5 - 15 points) Allow the user to place attractors and repulsors in the scene that influence the motion of the particles. The more variations of influencers you add, the more points you'll receive. Consider adding influencers that do not act uniformly in all directions, or that are not simply points in space but volumes. They should be visible in the scene in some manner.
