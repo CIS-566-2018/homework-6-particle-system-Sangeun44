@@ -35,11 +35,11 @@ Ray-casting from camera plane to 0 plane
 
 If the user clicks left button,
 it will create an attractor on the 0 z-plane. 
-when you attract it will 
+when you attract it will be really weak. It's hard to see and really slow
 
 If the user clicks the right button,
 it will create a repeler on the 0 z-plane.
-when you repel, it will repel everything away
+when you repel, it will repel everything away from that point, it will look like the particles are repelling towards u
 
 After getting the position of attraction from main.ts, check if a particle is in range 20 of the point. if it is in range 20, it's acceleration will be away/from the click point.
 
@@ -48,6 +48,7 @@ Really SLOW
 http://antongerdelan.net/opengl/raycasting.html - ray casting method source
 ![](sc.png)
 ![](flower.png)
+![](cow.png)
 ## Mesh surface attraction (20 points)
 Used Webgl obj loader
 After getting the vertex information, if the user selects a mesh, it will transform a subset of the particles into a mesh. The rest pf the particles are normal.
