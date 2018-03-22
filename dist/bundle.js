@@ -3415,7 +3415,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 // This will be referred to by dat.GUI's functions that add GUI elements.
 const controls = {
     tesselations: 5,
-    meshes: ['flower'],
+    meshes: 'flower',
     'Load Scene': loadScene,
 };
 let particles;
@@ -3436,12 +3436,14 @@ let attracted;
 //mesh
 let mesh;
 let flower;
+let vertices;
 // Add controls to the gui
 const gui = new __WEBPACK_IMPORTED_MODULE_2_dat_gui__["GUI"]();
 //gui.addColor(controls, 'color');
-gui.add(controls, 'meshes', ['flower', 'coral', 'tree', 'dragon', 'voltron']);
+gui.add(controls, 'meshes', ['flower', ' coral', 'tree', 'dragon']);
 gui.add(controls, 'Load Scene');
 function loadScene() {
+    vertices = [];
     particles = new Array();
     square = new __WEBPACK_IMPORTED_MODULE_7__geometry_Square__["a" /* default */]();
     mesh = new __WEBPACK_IMPORTED_MODULE_5__geometry_Mesh__["a" /* default */](__WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].fromValues(0, 0, 0));
@@ -3516,6 +3518,7 @@ function main() {
     // This function will be called every frame
     function tick() {
         camera.update();
+        meshLoad();
         stats.begin(); //fps
         gl.viewport(0, 0, window.innerWidth, window.innerHeight);
         renderer.clear();
@@ -3552,7 +3555,7 @@ function main() {
             //if repelling attraction happens
             if (repelled === true) {
                 var dist = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].distance(point, particle.curr_pos);
-                if (length < 20) {
+                if (dist < 50) {
                     console.log("repel is true");
                     let ray = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].create();
                     __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].subtract(ray, particle.curr_pos, point);
@@ -3567,6 +3570,14 @@ function main() {
             }
             //particle.curr_vel = vec3.fromValues(0.2,0.2,0);
             particle.update(dT);
+            //for mesh
+            console.log(vertices.length);
+            for (var i = 0; i < vertices.length; ++i) {
+                //position vector
+                var pos = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].create();
+                pos = vertices[i];
+                particles[i].curr_pos = pos;
+            }
             offsetsArray[i * 3] = particle.curr_pos[0];
             offsetsArray[i * 3 + 1] = particle.curr_pos[1];
             offsetsArray[i * 3 + 2] = particle.curr_pos[2];
@@ -3598,15 +3609,34 @@ function main() {
 }
 //check for mesh type
 function meshLoad() {
-    if (controls.meshes[0] === 'flower') {
+    if (controls.meshes === 'flower') {
         mesh.addFlower(flower);
+        let sep_Verts = mesh.pos;
+        for (var i = 0; i < sep_Verts.length; i = i + 3) {
+            var vector_Pos = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].create();
+            vector_Pos[0] = sep_Verts[i];
+            vector_Pos[1] = sep_Verts[i + 1];
+            vector_Pos[2] = sep_Verts[i + 2];
+            vertices.push(vector_Pos);
+        }
     }
+    // else if(controls.meshes === 'flower') {
+    //      mesh.addFlower(flower);
+    // }
+    //   else if(controls.meshes[0] === 'flower') {
+    //   mesh.addFlower(flower);
+    // }
+    //   else if(controls.meshes[0] === 'flower') {
+    //   mesh.addFlower(flower);
+    //   }
 }
 //calculate the point in screen from pixel
 function screenToWorld() {
     //2d Viewport Coordinates
     var x = (mouseX / window.innerWidth) * 2 - 1;
     var y = 1 - (mouseY / window.innerHeight) * 2;
+    x /= window.innerHeight;
+    y /= window.innerHeight;
     var z = 1;
     var angle = Math.tan(camera.fovy / 2.0);
     var ref = __WEBPACK_IMPORTED_MODULE_0_gl_matrix__["c" /* vec3 */].create();
@@ -15481,7 +15511,7 @@ class Flower extends __WEBPACK_IMPORTED_MODULE_1__rendering_gl_Drawable__["a" /*
         this.positions = new Float32Array([]);
         this.normals = new Float32Array([]);
         //obj loader
-        this.objStr = document.getElementById('why_carrot.obj').innerHTML;
+        this.objStr = document.getElementById('why_flower.obj').innerHTML;
         this.mesh = new OBJ.Mesh(this.objStr);
         this.addMeshData();
     }

@@ -49,10 +49,11 @@ let vertices : Array<vec3>;
 // Add controls to the gui
 const gui = new DAT.GUI();
 //gui.addColor(controls, 'color');
-gui.add(controls, 'meshes', ['flower', ' coral', 'tree', 'dragon', 'voltron']);
+gui.add(controls, 'meshes', ['flower', ' coral', 'tree', 'dragon']);
 gui.add(controls, 'Load Scene');
 
 function loadScene() {
+  vertices = [];
   particles = new Array<Particle>();
   square = new Square();
   mesh = new Mesh(vec3.fromValues(0,0,0));
@@ -143,6 +144,7 @@ function main() {
   // This function will be called every frame
   function tick() {      
     camera.update();
+    meshLoad();
 
     stats.begin(); //fps
     gl.viewport(0, 0, window.innerWidth, window.innerHeight);
@@ -158,8 +160,27 @@ function main() {
     //update 
     //console.log(point); 
 
+     //for mesh
+    //console.log(vertices.length);
+    for(var i = 0; i < 9; ++i) {
+      //position vector
+      var pos = vec3.create();
+      pos = vertices[i];
+      particles[i].curr_pos = pos;
+          
+      //console.log(particles[i].curr_pos);
+      offsetsArray[i * 3] = particles[i].curr_pos[0];
+      offsetsArray[i * 3 + 1] = particles[i].curr_pos[1];
+      offsetsArray[i * 3 + 2] = particles[i].curr_pos[2];
+   
+      colorsArray[i * 4] = particles[i].color[0];
+      colorsArray[i * 4 + 1] = particles[i].color[1];
+      colorsArray[i * 4 + 2] = particles[i].color[2];
+      colorsArray[i * 4 + 3] = particles[i].color[3];
+    }
+
     //update particles
-    for(var i = 1; i < particles.length; ++i) {
+    for(var i = vertices.length; i < particles.length; ++i) {
       let particle : Particle = particles[i];
       //console.log(particle.curr_pos);
 
@@ -178,13 +199,12 @@ function main() {
           vec3.scale(particle.curr_vel, particle.curr_vel, 0.2);
           particle.applyForce(ray);
         }
-        //particle.curr_vel = vec3.fromValues(0.2,0.2,0);
       }
 
       //if repelling attraction happens
       if(repelled === true) {
         var dist = vec3.distance(point, particle.curr_pos);
-        if(length < 50) {
+        if(dist < 50) {
             console.log("repel is true");
             let ray : vec3 = vec3.create();                    
             vec3.subtract(ray, particle.curr_pos, point);
@@ -195,22 +215,21 @@ function main() {
             vec3.scale(particle.curr_vel, particle.curr_vel, 2.2);
             particle.applyForce(ray);
           }
-        // console.log("newAcc:" + particle.acceleration);
-        }
-
-        //particle.curr_vel = vec3.fromValues(0.2,0.2,0);
-      
+        }  
       particle.update(dT);
-
+    
+   
       offsetsArray[i * 3] = particle.curr_pos[0];
       offsetsArray[i * 3 + 1] = particle.curr_pos[1];
       offsetsArray[i * 3 + 2] = particle.curr_pos[2];
-   
+     
       colorsArray[i * 4] = particle.color[0];
       colorsArray[i * 4 + 1] = particle.color[1];
       colorsArray[i * 4 + 2] = particle.color[2];
       colorsArray[i * 4 + 3] = particle.color[3];
-    }
+    
+  }
+
 
     //update Square 
     offsets = new Float32Array(offsetsArray);
@@ -237,21 +256,19 @@ function main() {
 
   //Start the render loop
   tick();
-  meshLoad();
 }
 
 //check for mesh type
 function meshLoad() {
   if(controls.meshes === 'flower') {
       mesh.addFlower(flower);
-      let sep_Verts : Float32Array = mesh.positions;
+      let sep_Verts : Array<number> = mesh.pos;
       for(var i = 0; i < sep_Verts.length; i = i + 3) {
         var vector_Pos = vec3.create();
         vector_Pos[0] = sep_Verts[i];
         vector_Pos[1] = sep_Verts[i+1];
         vector_Pos[2] = sep_Verts[i+2]
         vertices.push(vector_Pos);
-        console.log(vertices.length);
       }
   }
 // else if(controls.meshes === 'flower') {
