@@ -26,6 +26,7 @@ Particles are constrained to a sphere for ease of viewing
 
 ## Procedural coloration and shaping of particles (15 points)
 Colors of the particle depend on time and position from the center.
+Also used Cosine colors
 
 ## Interactive forces (25 points)
 Using camera z plane

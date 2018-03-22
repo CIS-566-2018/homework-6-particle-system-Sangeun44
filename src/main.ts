@@ -162,25 +162,25 @@ function main() {
 
      //for mesh
     //console.log(vertices.length);
-    for(var i = 0; i < 9; ++i) {
-      //position vector
-      var pos = vec3.create();
-      pos = vertices[i];
-      particles[i].curr_pos = pos;
+    // for(var i = 0; i < 9; ++i) {
+    //   //position vector
+    //   var pos = vec3.create();
+    //   pos = vertices[i];
+    //   particles[i].curr_pos = pos;
           
-      //console.log(particles[i].curr_pos);
-      offsetsArray[i * 3] = particles[i].curr_pos[0];
-      offsetsArray[i * 3 + 1] = particles[i].curr_pos[1];
-      offsetsArray[i * 3 + 2] = particles[i].curr_pos[2];
+    //   //console.log(particles[i].curr_pos);
+    //   offsetsArray[i * 3] = particles[i].curr_pos[0];
+    //   offsetsArray[i * 3 + 1] = particles[i].curr_pos[1];
+    //   offsetsArray[i * 3 + 2] = particles[i].curr_pos[2];
    
-      colorsArray[i * 4] = particles[i].color[0];
-      colorsArray[i * 4 + 1] = particles[i].color[1];
-      colorsArray[i * 4 + 2] = particles[i].color[2];
-      colorsArray[i * 4 + 3] = particles[i].color[3];
-    }
+    //   colorsArray[i * 4] = particles[i].color[0];
+    //   colorsArray[i * 4 + 1] = particles[i].color[1];
+    //   colorsArray[i * 4 + 2] = particles[i].color[2];
+    //   colorsArray[i * 4 + 3] = particles[i].color[3];
+    // }
 
     //update particles
-    for(var i = vertices.length; i < particles.length; ++i) {
+    for(var i = 0; i < particles.length; ++i) {
       let particle : Particle = particles[i];
       //console.log(particle.curr_pos);
 
